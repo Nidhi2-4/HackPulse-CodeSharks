@@ -70,14 +70,6 @@ export default function HomePage() {
               <span>Upload X-Ray &amp; Test AI</span>
               <ArrowRightIcon className="w-4 h-4" />
             </Link>
-
-            <a
-              href="tel:+18005557272"
-              className="px-7 py-4 rounded-2xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 font-semibold text-sm transition-all inline-flex items-center gap-2 shadow-sm hover:scale-[1.02]"
-            >
-              <PhoneIcon className="w-4 h-4 text-sky-600" />
-              <span>Call Helpline: +1 (800) 555-7272</span>
-            </a>
           </div>
         </div>
       </section>
