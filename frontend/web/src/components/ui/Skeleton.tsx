@@ -36,8 +36,8 @@ export function Skeleton({
 
 export function PatientReportSkeleton() {
   return (
-    <div className="p-6 rounded-2xl bg-white border border-[#d1d9ca] shadow-sm space-y-6">
-      <div className="flex items-center justify-between pb-4 border-b border-[#e8e8e8]">
+    <div className="p-6 rounded-2xl bg-white border border-sky-200 shadow-sm space-y-6">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-100">
         <div className="flex items-center gap-4">
           <Skeleton variant="circular" className="w-12 h-12" />
           <div className="space-y-2">
@@ -49,17 +49,17 @@ export function PatientReportSkeleton() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-[#eeeeee]/60 border border-[#e8e8e8] space-y-3">
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
           <Skeleton variant="text" className="w-24 h-4" />
           <Skeleton variant="text" className="w-32 h-7" />
           <Skeleton variant="text" className="w-full h-3" />
         </div>
-        <div className="p-4 rounded-xl bg-[#eeeeee]/60 border border-[#e8e8e8] space-y-3">
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
           <Skeleton variant="text" className="w-28 h-4" />
           <Skeleton variant="text" className="w-36 h-7" />
           <Skeleton variant="text" className="w-full h-3" />
         </div>
-        <div className="p-4 rounded-xl bg-[#eeeeee]/60 border border-[#e8e8e8] space-y-3">
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
           <Skeleton variant="text" className="w-32 h-4" />
           <Skeleton variant="text" className="w-28 h-7" />
           <Skeleton variant="text" className="w-full h-3" />

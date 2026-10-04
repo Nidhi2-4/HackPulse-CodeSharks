@@ -6,55 +6,55 @@ import { ActivityIcon, PhoneIcon, MailIcon, ShieldCheckIcon, AlertTriangleIcon }
 
 export function Footer() {
   return (
-    <footer className="bg-[#e8e8e8] border-t border-[#dae3ec] text-[#1e293b] mt-auto">
+    <footer className="bg-slate-900 text-slate-300 mt-auto border-t border-slate-800">
       {/* Top Banner: Emergency & Contact Grid */}
-      <div className="bg-[#dae3ec]/80 border-b border-[#bac7b6]/50 py-8 px-4 sm:px-8">
+      <div className="bg-sky-950/60 border-b border-sky-900/60 py-8 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-white/70 border border-[#bac7b6]">
-            <div className="p-3 rounded-xl bg-[#bac7b6] text-[#1e293b]">
+          <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-900/80 border border-sky-900/50">
+            <div className="p-3 rounded-xl bg-sky-600 text-white shadow-sm">
               <PhoneIcon className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-[#475569]">Clinical Trial Helpline</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-sky-400">Clinical Trial Helpline</h4>
               <a
                 href="tel:+18005557272"
-                className="text-base font-bold text-[#1e293b] hover:text-[#8c9e88] transition-colors block"
+                className="text-base font-bold text-white hover:text-sky-300 transition-colors block"
               >
                 +1 (800) 555-7272
               </a>
-              <span className="text-xs text-[#64748b]">Toll-free 24/7 Clinical Support</span>
+              <span className="text-xs text-slate-400">Toll-free 24/7 Clinical Support</span>
             </div>
           </div>
 
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-white/70 border border-[#bac7b6]">
-            <div className="p-3 rounded-xl bg-[#d1d9ca] text-[#1e293b]">
+          <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-900/80 border border-sky-900/50">
+            <div className="p-3 rounded-xl bg-sky-800 text-white shadow-sm">
               <PhoneIcon className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-[#475569]">Hospital Deployment Desk</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-sky-400">Hospital Deployment Desk</h4>
               <a
                 href="tel:+918023456789"
-                className="text-base font-bold text-[#1e293b] hover:text-[#8c9e88] transition-colors block"
+                className="text-base font-bold text-white hover:text-sky-300 transition-colors block"
               >
                 +91 (80) 2345-6789
               </a>
-              <span className="text-xs text-[#64748b]">Tier-2 & Tier-3 Pilot Inquiries</span>
+              <span className="text-xs text-slate-400">Tier-2 & Tier-3 Pilot Inquiries</span>
             </div>
           </div>
 
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-white/70 border border-[#bac7b6]">
-            <div className="p-3 rounded-xl bg-[#dae3ec] text-[#1e293b]">
+          <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-900/80 border border-sky-900/50">
+            <div className="p-3 rounded-xl bg-blue-600 text-white shadow-sm">
               <MailIcon className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-[#475569]">Direct Support Email</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-sky-400">Direct Support Email</h4>
               <a
                 href="mailto:support@sarcoscan.ai"
-                className="text-base font-bold text-[#1e293b] hover:text-[#8c9e88] transition-colors block"
+                className="text-base font-bold text-white hover:text-sky-300 transition-colors block"
               >
                 support@sarcoscan.ai
               </a>
-              <span className="text-xs text-[#64748b]">Inquiries, PACS setup & integrations</span>
+              <span className="text-xs text-slate-400">Inquiries, PACS setup & integrations</span>
             </div>
           </div>
         </div>
@@ -65,51 +65,46 @@ export function Footer() {
         {/* Col 1: About & Info */}
         <div className="md:col-span-1 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#bac7b6] flex items-center justify-center text-[#1e293b]">
+            <div className="w-9 h-9 rounded-xl bg-sky-600 flex items-center justify-center text-white">
               <ActivityIcon className="w-5 h-5" />
             </div>
-            <span className="font-bold text-xl tracking-tight text-[#1e293b]">SarcoScan</span>
+            <span className="font-bold text-xl tracking-tight text-white">SarcoScan</span>
           </div>
-          <p className="text-xs text-[#475569] leading-relaxed">
+          <p className="text-xs text-slate-400 leading-relaxed">
             SarcoScan combines routine knee AP X-rays with a 10-second handgrip test to flag sarcopenia & osteoporosis risk on-premise without DEXA or CT scans.
           </p>
-          <div className="flex items-center gap-2 text-xs text-[#475569]">
-            <span className="px-2 py-0.5 rounded bg-[#d1d9ca] font-medium text-[#1e293b]">Clinical AI</span>
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span className="px-2 py-0.5 rounded bg-sky-950 text-sky-300 font-medium border border-sky-800">Clinical AI</span>
             <span>· On-Premise LAN</span>
           </div>
         </div>
 
         {/* Col 2: Navigation */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold uppercase tracking-wider text-[#1e293b]">Platform</h4>
-          <ul className="space-y-2 text-xs text-[#475569]">
+          <h4 className="text-sm font-semibold uppercase tracking-wider text-white">Platform</h4>
+          <ul className="space-y-2 text-xs text-slate-400">
             <li>
-              <Link href="/" className="hover:text-[#1e293b] transition-colors">
+              <Link href="/" className="hover:text-white transition-colors">
                 Screening Suite
               </Link>
             </li>
             <li>
-              <Link href="/login" className="hover:text-[#1e293b] transition-colors">
-                Staff Login
-              </Link>
-            </li>
-            <li>
-              <Link href="/about" className="hover:text-[#1e293b] transition-colors">
+              <Link href="/about" className="hover:text-white transition-colors">
                 About SarcoScan
               </Link>
             </li>
             <li>
-              <Link href="/#clinical-workflow" className="hover:text-[#1e293b] transition-colors">
+              <Link href="/#clinical-workflow" className="hover:text-white transition-colors">
                 Clinical Workflow
               </Link>
             </li>
             <li>
-              <Link href="/#validation-targets" className="hover:text-[#1e293b] transition-colors">
+              <Link href="/#validation-targets" className="hover:text-white transition-colors">
                 Validation & AUC Metrics
               </Link>
             </li>
             <li>
-              <Link href="/non-existent-page" className="hover:text-[#1e293b] transition-colors text-slate-500">
+              <Link href="/non-existent-page" className="hover:text-white transition-colors text-slate-500">
                 Custom 404 Test Page
               </Link>
             </li>
@@ -118,26 +113,26 @@ export function Footer() {
 
         {/* Col 3: Compliance & Legal */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold uppercase tracking-wider text-[#1e293b]">Compliance & Legal</h4>
-          <ul className="space-y-2 text-xs text-[#475569]">
+          <h4 className="text-sm font-semibold uppercase tracking-wider text-white">Compliance & Legal</h4>
+          <ul className="space-y-2 text-xs text-slate-400">
             <li>
-              <Link href="/privacy-policy" className="hover:text-[#1e293b] transition-colors font-medium text-[#1e293b]">
+              <Link href="/privacy-policy" className="hover:text-white transition-colors font-medium text-slate-300">
                 Privacy Policy & HIPAA
               </Link>
             </li>
             <li>
-              <Link href="/terms-and-conditions" className="hover:text-[#1e293b] transition-colors font-medium text-[#1e293b]">
+              <Link href="/terms-and-conditions" className="hover:text-white transition-colors font-medium text-slate-300">
                 Terms and Conditions
               </Link>
             </li>
             <li>
-              <a href="mailto:privacy@sarcoscan.ai" className="hover:text-[#1e293b] transition-colors">
+              <a href="mailto:privacy@sarcoscan.ai" className="hover:text-white transition-colors">
                 Data Protection Officer: privacy@sarcoscan.ai
               </a>
             </li>
             <li>
-              <span className="inline-flex items-center gap-1 text-slate-600">
-                <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-700" />
+              <span className="inline-flex items-center gap-1 text-sky-400">
+                <ShieldCheckIcon className="w-3.5 h-3.5" />
                 Zero-Cloud Data Transfer
               </span>
             </li>
@@ -146,10 +141,10 @@ export function Footer() {
 
         {/* Col 4: Contact & Medical Disclaimer */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold uppercase tracking-wider text-[#1e293b]">Medical Disclaimer</h4>
-          <div className="p-3 rounded-xl bg-[#eeeeee] border border-[#d1d9ca] text-[11px] text-[#475569] leading-relaxed">
-            <div className="flex items-center gap-1.5 font-semibold text-[#1e293b] mb-1">
-              <AlertTriangleIcon className="w-3.5 h-3.5 text-amber-600" />
+          <h4 className="text-sm font-semibold uppercase tracking-wider text-white">Medical Disclaimer</h4>
+          <div className="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700 text-[11px] text-slate-400 leading-relaxed">
+            <div className="flex items-center gap-1.5 font-semibold text-amber-400 mb-1">
+              <AlertTriangleIcon className="w-3.5 h-3.5" />
               <span>Research Prototype</span>
             </div>
             SarcoScan is an AI screening and referral tool designed for clinical research and pilot triaging. It does not replace definitive DEXA diagnosis or physician clinical judgment.
@@ -158,15 +153,15 @@ export function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-[#dae3ec] py-4 px-4 sm:px-8 text-center text-xs text-[#64748b] bg-[#eeeeee]">
+      <div className="border-t border-slate-800 py-4 px-4 sm:px-8 text-center text-xs text-slate-500 bg-slate-950">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>© {new Date().getFullYear()} SarcoScan. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <Link href="/privacy-policy" className="hover:underline">Privacy</Link>
+            <Link href="/privacy-policy" className="hover:text-slate-300">Privacy</Link>
             <span>·</span>
-            <Link href="/terms-and-conditions" className="hover:underline">Terms</Link>
+            <Link href="/terms-and-conditions" className="hover:text-slate-300">Terms</Link>
             <span>·</span>
-            <a href="mailto:support@sarcoscan.ai" className="hover:underline">support@sarcoscan.ai</a>
+            <a href="mailto:support@sarcoscan.ai" className="hover:text-slate-300">support@sarcoscan.ai</a>
           </div>
         </div>
       </div>
