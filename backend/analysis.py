@@ -1,4 +1,5 @@
 """Cutoffs, the sarcopenia stage rule, and the call into the ML code. See docs/ML.md."""
+import importlib.util
 from pathlib import Path
 
 from .models import Stage
@@ -26,6 +27,14 @@ def sarcopenia_stage(
     if not low_muscle:
         return Stage.possible
     return Stage.severe if (low_grip and slow) else Stage.probable
+
+
+def model_connected() -> bool:
+    """True once ml/predict.py is in the repo."""
+    try:
+        return importlib.util.find_spec("ml.predict") is not None
+    except ModuleNotFoundError:
+        return False
 
 
 def run_model(image_path: Path, age: int, sex: str, bmi: float) -> dict:

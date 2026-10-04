@@ -2,7 +2,7 @@
 
 Owner: Anish. Last updated: 2026-10-04.
 
-Status: most backend controls are built and tested on SQLite. Nothing has run on PostgreSQL or over HTTPS yet. The checklist at the bottom tracks each item; update it as items change.
+Status: the backend controls are built and tested, and the web app uses them. The audit triggers were checked on PostgreSQL. Nothing has run over HTTPS yet. The checklist at the bottom tracks each item; update it as items change.
 
 ## The main idea
 
@@ -117,6 +117,7 @@ Call it "append-only", not "immutable" or "tamper-proof". A database administrat
 - Secrets live in `.env`, which `.gitignore` excludes. Commit a `.env.example` with names and no values.
 - Never log passwords, tokens, or patient names. The spec's test checklist includes "no PHI in logs" (page 26).
 - Use SQLAlchemy queries. Never build SQL by joining strings.
+- The web app loads no script from another site at run time, and keeps no patient data in browser storage.
 
 ## 8. Data at rest
 
@@ -181,9 +182,9 @@ Say these openly if a judge asks. They are in the spec but not in the hackathon 
 |---|---|---|
 | 1 | argon2 password hashing | done |
 | 2 | Login rate limit, 5 a minute per address | done. Kept in memory, so it counts per server process. |
-| 3 | Access token, 15 minutes, memory only | backend: done. The UI must keep it out of browser storage. |
+| 3 | Access token, 15 minutes, memory only | done. The web app keeps it in a variable in `api.ts`, never in browser storage. |
 | 4 | Refresh token in HttpOnly cookie, hashed in database, rotated, reuse signs the user out everywhere | done |
-| 5 | UI and API on one origin, CORS closed | backend has no CORS: done. The UI's `/api` forwarding: planned. |
+| 5 | UI and API on one origin, CORS closed | done. The web app forwards `/api` to the backend, and the backend has no CORS. |
 | 6 | Role dependency on every endpoint | done |
 | 7 | Upload size, type, and name checks | done for PNG and JPG |
 | 8 | X-rays served only through authenticated endpoints | done on local disk. See item 17. |
@@ -192,7 +193,9 @@ Say these openly if a judge asks. They are in the spec but not in the hackathon 
 | 11 | `.env.example` in the repo, `.env` ignored | done |
 | 12 | Encrypted disk on the demo server | planned |
 | 13 | Test: each role is refused where the table says No | done for the audit log, review, and starting a visit |
-| 14 | Append-only triggers on `audit_logs` | written, not yet run on PostgreSQL |
+| 14 | Append-only triggers on `audit_logs` | done. On PostgreSQL 17, UPDATE, DELETE and TRUNCATE were each refused. |
 | 15 | Name and phone encrypted with AES-256-GCM, `phone_hash` for search | done |
 | 16 | DICOM uploads converted to PNG, original discarded | later. DICOM uploads are refused for now. |
 | 17 | Cloud copies of X-rays are private, with signed links | not met. `backend/storage.py` mirrors to Cloudinary with a default upload, which anyone with the link can open. |
+| 18 | The web app loads no third-party script at run time | done. A Tailwind CDN script tag was removed; styles are compiled at build time. |
+| 19 | No patient data in browser storage | done. The earlier localStorage store was replaced by calls to the backend. |

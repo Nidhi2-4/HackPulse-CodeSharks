@@ -1,36 +1,47 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { newId, update, type Patient, type Sex } from "@/lib/store";
+import { useState } from "react";
+import { registerPatient, type Sex } from "@/lib/store";
 
 export default function NewPatient() {
   const router = useRouter();
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  function submit(e: React.FormEvent<HTMLFormElement>) {
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const id = newId();
-    const patient: Patient = {
-      id,
-      mrn: `SS-${id.slice(-5).toUpperCase()}`,
-      name: String(f.get("name")).trim(),
-      age: Number(f.get("age")),
-      sex: f.get("sex") as Sex,
-      heightCm: Number(f.get("heightCm")),
-      weightKg: Number(f.get("weightKg")),
-      phone: String(f.get("phone")) || undefined,
-    };
-    update((s) => ({ patients: [patient, ...s.patients] }), `Registered patient ${patient.mrn}`);
-    router.push(`/patients/${id}`);
+    setBusy(true);
+    setError("");
+    try {
+      const id = await registerPatient({
+        mrn: String(f.get("mrn")).trim(),
+        name: String(f.get("name")).trim(),
+        age: Number(f.get("age")),
+        sex: f.get("sex") as Sex,
+        heightCm: Number(f.get("heightCm")),
+        weightKg: Number(f.get("weightKg")),
+        phone: String(f.get("phone")).trim() || undefined,
+      });
+      router.push(`/patients/${id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not register the patient.");
+      setBusy(false);
+    }
   }
 
   return (
     <>
       <h1 className="h1">New patient</h1>
       <form onSubmit={submit} className="card grid max-w-2xl gap-4 sm:grid-cols-2">
-        <label className="label sm:col-span-2">
+        <label className="label">
           Full name
-          <input name="name" required minLength={2} className="input" />
+          <input name="name" required minLength={2} autoComplete="off" className="input" />
+        </label>
+        <label className="label">
+          Hospital record number (MRN)
+          <input name="mrn" required maxLength={40} autoComplete="off" className="input" />
         </label>
         <label className="label">
           Age (years)
@@ -41,6 +52,7 @@ export default function NewPatient() {
           <select name="sex" required className="input">
             <option value="M">Male</option>
             <option value="F">Female</option>
+            <option value="O">Other</option>
           </select>
         </label>
         <label className="label">
@@ -53,9 +65,20 @@ export default function NewPatient() {
         </label>
         <label className="label sm:col-span-2">
           Phone (optional)
-          <input name="phone" type="tel" pattern="[0-9+ -]{7,15}" className="input" />
+          <input name="phone" type="tel" pattern="[0-9+ -]{7,15}" autoComplete="off" className="input" />
         </label>
-        <button className="btn sm:col-span-2">Register patient</button>
+        <label className="flex items-start gap-2 text-sm sm:col-span-2">
+          <input type="checkbox" required className="mt-1" />
+          The patient has agreed to this screening and to their data being stored for it.
+        </label>
+        {error && (
+          <p role="alert" className="text-sm text-red-700 sm:col-span-2">
+            {error}
+          </p>
+        )}
+        <button className="btn sm:col-span-2" disabled={busy}>
+          {busy ? "Saving..." : "Register patient"}
+        </button>
       </form>
     </>
   );

@@ -10,7 +10,7 @@ This is the task list. Tick a box when the thing works, not when it is started. 
 |---|---|---|
 | Anish | Backend, database, security | `backend/` |
 | Pravesh | Models and inference | `ml/` |
-| Nidhi | Web UI, mobile and desktop, spec document | `web/`, `mobile/`, `desktop/` |
+| Nidhi | Web UI, mobile and desktop, spec document | `frontend/web/` |
 | Soham | Pitch deck and demo | `docs/` |
 
 ## Milestones
@@ -22,6 +22,8 @@ This is the task list. Tick a box when the thing works, not when it is started. 
 | M2 | Real pieces | Osteoporosis model, muscle ratios, sarcopenia rules, overlay, history graph, PDF report |
 | M3 | Ready to show | Security checklist done, PWA installs, demo data loaded, backup video recorded, deck final |
 
+M1 is reached: the flow runs through the web app, the API and the database, with no model connected. M0 is not: local commits have not been pushed.
+
 M1 comes before making any single piece good. Joining the parts on the last day is how hackathon demos fail.
 
 ## Anish
@@ -30,7 +32,7 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 
 - [x] FastAPI confirmed as the backend framework
 - [ ] First commit and push (M0)
-- [ ] PostgreSQL running in Docker, and the API run against it
+- [x] The API run against PostgreSQL (the Supabase development database)
 - [x] `.env.example` written
 - [x] The 9 tables in `DATABASE.md`
 - [x] Auth: argon2, login, refresh with rotation, logout, me
@@ -43,9 +45,9 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 - [x] Analyze endpoint calling `ml/predict.py`, and result endpoint. The model is not connected yet; see `API.md`.
 - [x] History endpoint
 - [x] Doctor review endpoint
-- [ ] PDF report
+- [x] PDF report (made in the web app)
 - [x] Test: each role is refused where `SECURITY.md` says No
-- [ ] Append-only triggers on `audit_logs`: written, not yet run on PostgreSQL
+- [x] Append-only triggers on `audit_logs`, checked on PostgreSQL
 - [x] Name and phone encryption, with `phone_hash` for search
 - [ ] Cloudinary copies of X-rays made private (`SECURITY.md` checklist item 17)
 - [ ] DICOM uploads converted to PNG (only if DICOM upload is supported)
@@ -66,20 +68,20 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 
 ## Nidhi
 
-- [ ] Create `web/` with the command in `FRONTEND.md`
-- [ ] App shell that works on a phone screen
-- [ ] Results screen with placeholder data
-- [ ] Login and token handling
-- [ ] Patient list, new patient, patient profile
-- [ ] Screening wizard: clinical inputs, handgrip, X-ray upload, progress, results (M1)
-- [ ] History graph
+- [x] Web app in `frontend/web/`: app shell, dashboard, patient list, new patient, patient profile
+- [x] Login and token handling against the backend
+- [x] Screening wizard with one Run screening action (M1)
+- [x] Results, report page, doctor review, PDF download
+- [x] History graph
+- [ ] Click through every screen in a browser and on a real phone, including the PDF download
 - [ ] PWA manifest and icons
 - [ ] Spec PDF: add the desktop app, remove the 13 leftover Bluetooth lines
-- [ ] Optional: Tauri shell in `desktop/`, Capacitor shell in `mobile/`
+- [ ] Optional: Tauri shell (`DESKTOP.md`), Capacitor shell (`MOBILE.md`)
 
 ## Soham
 
-- [ ] Deck skeleton from `PITCH.md`
+- [x] Deck: `docs/HackPulse - Codesharks.pdf`
+- [ ] Fix the deck's claims listed under "Review of the current deck" in `PITCH.md`
 - [ ] Architecture slide from `ARCHITECTURE.md`
 - [ ] 3 to 5 sample X-rays for the demo, from the public datasets only
 - [ ] Demo script

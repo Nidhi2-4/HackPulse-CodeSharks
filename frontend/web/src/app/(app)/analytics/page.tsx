@@ -1,6 +1,6 @@
 "use client";
 
-import { STAGE, TIER, finalStage, gripCutoff, useStore } from "@/lib/store";
+import { STAGE, TIER, finalStage, useStore } from "@/lib/store";
 
 function Bars({ title, rows, total }: { title: string; rows: [string, number][]; total: number }) {
   return (
@@ -18,12 +18,9 @@ function Bars({ title, rows, total }: { title: string; rows: [string, number][];
 }
 
 export default function Analytics() {
-  const { screenings, patients } = useStore();
+  const { screenings } = useStore();
   const total = screenings.length;
-  const lowGrip = screenings.filter((s) => {
-    const p = patients.find((x) => x.id === s.patientId);
-    return p && s.bestGrip < gripCutoff(p.sex);
-  }).length;
+  const lowGrip = screenings.filter((s) => s.bestGrip !== null && s.bestGrip < s.gripCutoff).length;
 
   return (
     <>

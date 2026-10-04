@@ -2,7 +2,7 @@
 
 Owner: Soham. Last updated: 2026-10-04.
 
-Status: no deck yet. This file is the outline and the rules for what the deck may claim.
+Status: the deck is `HackPulse - Codesharks.pdf` in this folder (9 slides). This file holds the rules for what it may claim, and a review of the current version.
 
 ## The one rule
 
@@ -15,6 +15,23 @@ Judges trust a team that says exactly what it built. Every number and every "we 
 - Do not list a security feature that is still `planned` in the checklist in `SECURITY.md`.
 - Say "built around DPDP principles", not "DPDP compliant". Say "append-only audit log", not "immutable" or "tamper-proof".
 - Say "trained on public datasets labelled from ultrasound T-scores". Do not say "validated against DEXA".
+
+## Review of the current deck
+
+Checked on 2026-10-04 against what is built.
+
+| Slide | What it says | Change to |
+|---|---|---|
+| 3, 6 | "Fusion of image + grip beats grip alone", "Our claim: fusion beats grip alone" | "Our hypothesis", with the validation plan from slide 8. Nothing has been measured. |
+| 3 | "for web and mobile" | True if it means the web app on a phone. There is no separate mobile app. |
+| 4 | "AI analysis (about 5 seconds)", "or auto-receive from PACS" | "Target: under 5 seconds". PACS is planned, not built. |
+| 5 | Diagram with Nginx, Redis queue, Celery worker, MinIO, Orthanc, React Native app | Title it "Target architecture", or redraw what runs today: Next.js web app, FastAPI, PostgreSQL, file storage, model. |
+| 5 | "DPDP compliant" | "Built around DPDP principles". Nobody has audited it. |
+| 6 | U-Net segmentation and an XGBoost fusion model shown as the pipeline | "Planned approach". There is no labelled data for either yet. Today the stage comes from AWGS rules. |
+| 7 | "FHIR export", "Explainable results (Grad-CAM)", "Segmentation overlay and muscle measurements", "Works offline on local network" | Keep only what works on demo day. FHIR is not built. Grad-CAM, overlay and measurements need the model. Offline has not been tested. |
+| 9 | "Runs on one standard i5 / 16 GB computer, no GPU" | A target. Not measured. |
+
+What the deck can say truthfully today: role-based login, patient registration and history, X-ray upload with a file check, handgrip against AWGS cutoffs, a rule-based sarcopenia stage, doctor review, PDF report, trend graph, encrypted patient name and phone, an append-only audit log.
 
 ## Slide outline
 

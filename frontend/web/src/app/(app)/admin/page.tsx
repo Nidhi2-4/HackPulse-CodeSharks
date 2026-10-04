@@ -1,12 +1,6 @@
 "use client";
 
-import { USERS, useStore } from "@/lib/store";
-
-// ponytail: static device list until the backend exposes /api/v1/devices
-const DEVICES = [
-  ["GRIP-01", "ESP32 grip dynamometer", "OPD Room 2", "Calibrated 2026-09-01"],
-  ["GRIP-02", "ESP32 grip dynamometer", "Geriatric clinic", "Calibration due"],
-];
+import { useStore } from "@/lib/store";
 
 export default function Admin() {
   const { user, audit } = useStore();
@@ -17,70 +11,42 @@ export default function Admin() {
       <h1 className="h1">Admin</h1>
 
       <section className="card overflow-x-auto">
-        <h2 className="h2">Users</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            {USERS.map((u) => (
-              <tr key={u.email}>
-                <td>{u.name}</td>
-                <td>{u.email}</td>
-                <td className="capitalize">{u.role}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      <section className="card overflow-x-auto">
-        <h2 className="h2">Devices</h2>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Type</th>
-              <th>Location</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {DEVICES.map((d) => (
-              <tr key={d[0]}>
-                {d.map((cell) => (
-                  <td key={cell}>{cell}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      <section className="card overflow-x-auto">
         <h2 className="h2">Audit log</h2>
+        <p className="mb-3 text-sm text-[#64748b]">
+          Every sign-in and every view or change of patient data. Rows can be added but not edited or deleted. Records
+          are shown by id; patient names are never written here.
+        </p>
         <table className="table">
           <thead>
             <tr>
               <th>Time</th>
-              <th>User</th>
+              <th>User id</th>
               <th>Action</th>
+              <th>Record</th>
+              <th>IP address</th>
             </tr>
           </thead>
           <tbody>
             {audit.map((a, i) => (
               <tr key={i}>
-                <td>{new Date(a.at).toLocaleString()}</td>
-                <td>{a.user}</td>
-                <td>{a.action}</td>
+                <td className="whitespace-nowrap">{new Date(a.at).toLocaleString()}</td>
+                <td className="font-mono">{a.user}</td>
+                <td className="font-semibold">{a.action}</td>
+                <td className="font-mono">{a.record}</td>
+                <td className="font-mono">{a.ip}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {!audit.length && <p className="p-3 text-sm text-[#64748b]">No entries yet.</p>}
+      </section>
+
+      <section className="card">
+        <h2 className="h2">Users</h2>
+        <p className="text-sm text-[#64748b]">
+          The first admin, doctor and technician are created on the server with <code>python -m backend.seed</code>.
+          Managing users from this page is planned after the MVP.
+        </p>
       </section>
     </>
   );

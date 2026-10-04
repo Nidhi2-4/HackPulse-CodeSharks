@@ -130,6 +130,8 @@ def test_patient_is_encrypted_at_rest_and_still_searchable(client):
         assert [p["mrn"] for p in found] == ["MRN-00412"], query
     assert client.get("/api/v1/patients", params={"q": "nobody"}, headers=headers).json() == []
     assert client.post("/api/v1/patients", json=PATIENT, headers=headers).status_code == 409
+    no_phone = {**PATIENT, "mrn": "MRN-00413", "phone": None}
+    assert client.post("/api/v1/patients", json=no_phone, headers=headers).json()["phone"] is None
     assert client.get("/api/v1/patients").status_code == 401
 
 
@@ -212,6 +214,11 @@ def test_screening_flow_from_visit_to_review(client):
     assert [(h["best_grip_kg"], h["sarcopenia_stage"], h["final_stage"]) for h in history] == [
         (16.4, "possible", "probable")
     ]
+    visits = client.get("/api/v1/visits", headers=doctor).json()
+    assert [(v["visit_id"], v["performed_by_name"], v["reviewed_by_name"]) for v in visits] == [
+        (visit["id"], "technician", "doctor")
+    ]
+    assert client.get("/api/v1/health").json() == {"status": "ok", "model_connected": False}
     admin = login(client, "admin")
     assert client.post(f"/api/v1/patients/{patient_id}/visits", headers=admin).status_code == 403
 

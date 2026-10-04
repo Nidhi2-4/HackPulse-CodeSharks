@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ScreeningTable, byDateDesc } from "@/components/app";
-import { bmi, gripCutoff, useStore } from "@/lib/store";
+import { SEX_LABEL, bmi, gripCutoff, useStore } from "@/lib/store";
 
 /** Best grip across visits, with the AWGS cutoff as a dashed line. */
 function GripTrend({ values, cutoff }: { values: number[]; cutoff: number }) {
@@ -32,6 +32,7 @@ export default function PatientProfile() {
   const p = patients.find((x) => x.id === id);
   if (!p) return <p>Patient not found.</p>;
   const visits = screenings.filter((s) => s.patientId === id).sort(byDateDesc);
+  const grips = [...visits].reverse().flatMap((s) => (s.bestGrip === null ? [] : [s.bestGrip]));
 
   return (
     <>
@@ -47,7 +48,7 @@ export default function PatientProfile() {
       <dl className="card grid grid-cols-2 gap-4 text-sm sm:grid-cols-5">
         {[
           ["Age", `${p.age} years`],
-          ["Sex", p.sex === "M" ? "Male" : "Female"],
+          ["Sex", SEX_LABEL[p.sex]],
           ["Height / weight", `${p.heightCm} cm / ${p.weightKg} kg`],
           ["BMI", bmi(p).toFixed(1)],
           ["Phone", p.phone ?? "Not given"],
@@ -59,10 +60,10 @@ export default function PatientProfile() {
         ))}
       </dl>
 
-      {visits.length > 0 && (
+      {grips.length > 0 && (
         <section className="card">
           <h2 className="h2">Grip strength trend</h2>
-          <GripTrend values={[...visits].reverse().map((s) => s.bestGrip)} cutoff={gripCutoff(p.sex)} />
+          <GripTrend values={grips} cutoff={gripCutoff(p.sex)} />
         </section>
       )}
 

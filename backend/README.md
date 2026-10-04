@@ -2,7 +2,7 @@
 
 Owner: Anish. The FastAPI app, the database models, and every security check.
 
-Status on 2026-10-04: login, patients, the screening flow, doctor review, and the audit log are written and pass 11 tests on SQLite. Not yet run against PostgreSQL. The ML model is not connected. PDF reports are not built.
+Status on 2026-10-04: login, patients, the screening flow, doctor review, and the audit log are written, pass 11 tests on SQLite, and run against the team's PostgreSQL database. The web app uses them. The ML model is not connected. The PDF report is made in the web app.
 
 Read before changing anything: [API](../docs/API.md), [Database](../docs/DATABASE.md), [Security](../docs/SECURITY.md).
 
@@ -44,11 +44,13 @@ The second line installs into the new environment with your main Python's pip. A
 
 Copy `.env.example` to `.env` and fill it in. The file explains how to generate each secret.
 
-Start PostgreSQL in Docker. Use the same password as in `DATABASE_URL`:
+`DATABASE_URL` can point at any PostgreSQL. Three options:
 
-```
-docker run --name sarcoscan-db -e POSTGRES_DB=sarcoscan -e POSTGRES_PASSWORD=change-me -p 5432:5432 -d postgres:15
-```
+- A hosted database such as Supabase (what the team uses for development). Pick a region near you: every query crosses the network, and a far region makes each page slow.
+- A local container: `docker run --name sarcoscan-db -e POSTGRES_DB=sarcoscan -e POSTGRES_PASSWORD=change-me -p 5432:5432 -d postgres:15`
+- No database server at all, for a quick local run: `DATABASE_URL=sqlite:///./sarcoscan.db?check_same_thread=false`
+
+The server takes a few seconds to start with a hosted database, and `--reload` restarts it on every file save. If the web app cannot sign in, check that http://localhost:8000/api/v1/health answers.
 
 Create the first three users (passwords come from `.env`), then start the API:
 

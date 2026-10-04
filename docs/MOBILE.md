@@ -1,17 +1,17 @@
-# mobile
+# Mobile
 
 Owner: Nidhi.
 
 Status on 2026-10-04: nothing built. Start only after the web UI works on a phone screen. The Capacitor steps below follow the Capacitor docs and have not been run in this repo yet; correct this file when you run them.
 
-There is no separate mobile app to write. The web UI in `web/` is responsive, and the phone opens that same UI. Background in [docs/FRONTEND.md](../docs/FRONTEND.md) and [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
+There is no separate mobile app to write. The web app in `frontend/web/` is responsive, and the phone opens that same UI. Background in [FRONTEND.md](FRONTEND.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Recommended: install the web app on the phone
 
 - Android (Chrome): open the SarcoScan URL, open the menu, choose "Install app".
 - iPhone (Safari): open the URL, tap Share, choose "Add to Home Screen".
 
-The app gets a home-screen icon and opens without browser bars. This needs the PWA manifest described in `docs/FRONTEND.md` and HTTPS on the server, and nothing in this folder.
+The app gets a home-screen icon and opens without browser bars. This needs the PWA manifest described in `FRONTEND.md` and HTTPS on the server, and nothing else.
 
 ## Optional: an APK with Capacitor (demo only)
 
@@ -22,13 +22,14 @@ It is a shell that opens the server URL through Capacitor's `server.url` setting
 Needed on the build machine: Android Studio with the Android SDK, and the JDK version Capacitor asks for. Check https://capacitorjs.com/docs/getting-started/environment-setup first.
 
 ```
-cd mobile
+mkdir frontend/android-shell
+cd frontend/android-shell
 npm init -y
 npm install @capacitor/core @capacitor/cli @capacitor/android
 npx cap init SarcoScan com.codesharks.sarcoscan --web-dir www
 ```
 
-Create `mobile/www/index.html` with a short "Cannot reach the SarcoScan server" message. Capacitor needs the file to exist; it is shown only if the server URL fails to load.
+Create `www/index.html` with a short "Cannot reach the SarcoScan server" message. Capacitor needs the file to exist; it is shown only if the server URL fails to load.
 
 ```
 npx cap add android

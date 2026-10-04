@@ -1,204 +1,132 @@
 import jsPDF from "jspdf";
+import { api } from "./api";
+import { CHAIR_CUTOFF, SEX_LABEL, STAGE, TIER, finalStage, type Patient, type Screening } from "./store";
 
-export interface ReportData {
-  patientTitle: string;
-  age: number;
-  sex: string;
-  bmi: number;
-  grip: number;
-  gripCutoff: number;
-  isGripLow: boolean;
-  softTissueRatio: number;
-  sarcopeniaStage: string;
-  sarcopeniaScore: number;
-  osteoRisk: string;
-  osteoProb: number;
-  doctorOverride: boolean;
-  overrideNote?: string;
+// The built-in PDF fonts only cover Latin-1, so every string here sticks to plain characters.
+
+/** The uploaded X-ray as a JPEG data URL, or null if it cannot be fetched. */
+async function xrayAsJpeg(xrayId: string): Promise<{ data: string; width: number; height: number } | null> {
+  try {
+    const bitmap = await createImageBitmap(await api.blob(`/xrays/${xrayId}/image`));
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    canvas.getContext("2d")!.drawImage(bitmap, 0, 0);
+    return { data: canvas.toDataURL("image/jpeg", 0.85), width: bitmap.width, height: bitmap.height };
+  } catch {
+    return null;
+  }
 }
 
-export function generateAndDownloadPdf(data: ReportData) {
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  });
+/** Build the one-page screening report from what the backend stored, and download it. */
+export async function downloadReport(patient: Patient, s: Screening): Promise<void> {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const width = doc.internal.pageSize.getWidth();
+  const height = doc.internal.pageSize.getHeight();
+  const left = 14;
+  const right = width - 14;
+  let y = 0;
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  let y = 18;
+  const heading = (text: string) => {
+    y += 9;
+    doc.setFont("helvetica", "bold").setFontSize(12).setTextColor(30, 41, 59);
+    doc.text(text, left, y);
+    y += 2;
+    doc.setDrawColor(203, 213, 225).line(left, y, right, y);
+    y += 6;
+  };
+  const row = (label: string, value: string, note = "") => {
+    doc.setFont("helvetica", "bold").setFontSize(9.5).setTextColor(30, 41, 59);
+    doc.text(label, left, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(value, 78, y);
+    if (note) doc.setTextColor(100, 116, 139).text(note, 118, y);
+    y += 6;
+  };
+  const flag = (low: boolean) => (low ? "Flagged" : "Normal");
 
-  // Header Bar
-  doc.setFillColor(30, 41, 59); // Slate 800
-  doc.rect(0, 0, pageWidth, 24, "F");
+  // Title bar
+  doc.setFillColor(30, 41, 59).rect(0, 0, width, 22, "F");
+  doc.setFont("helvetica", "bold").setFontSize(15).setTextColor(255, 255, 255);
+  doc.text("SarcoScan screening report", left, 10);
+  doc.setFont("helvetica", "normal").setFontSize(9);
+  doc.text("Screening aid for sarcopenia and osteoporosis risk. Not a diagnosis.", left, 16);
+  y = 24;
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("SARCOSCAN · CLINICAL AI SCREENING REPORT", 14, 12);
+  heading("Patient and visit");
+  row("Patient", `${patient.name} (${patient.mrn})`);
+  row("Age, sex", `${patient.age} years, ${SEX_LABEL[patient.sex]}`);
+  row("Height, weight, BMI", `${patient.heightCm} cm, ${patient.weightKg} kg, BMI ${s.bmi.toFixed(1)}`);
+  row("Screening date", s.date);
+  row("Screened by", s.by);
+  row("Status", s.finalized ? `Reviewed by ${s.reviewedBy ?? "doctor"}` : "Pending doctor review");
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.text("Team CodeSharks · Knee Radiograph + Handgrip Fusion Engine", 14, 18);
-
-  y = 34;
-
-  // Patient Info Card
-  doc.setFillColor(248, 250, 252);
-  doc.setDrawColor(203, 213, 225);
-  doc.roundedRect(14, y, pageWidth - 28, 28, 2, 2, "FD");
-
-  doc.setTextColor(30, 41, 59);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(11);
-  doc.text(`Patient Profile: ${data.patientTitle}`, 18, y + 8);
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(71, 85, 105);
-  doc.text(`Age: ${data.age} yrs`, 18, y + 16);
-  doc.text(`Biological Sex: ${data.sex}`, 60, y + 16);
-  doc.text(`BMI: ${data.bmi.toFixed(1)} kg/m²`, 110, y + 16);
-
-  const timestamp = new Date().toLocaleString();
-  doc.text(`Screening Date: ${timestamp}`, 18, y + 22);
-  doc.text(`Deployment: Hospital LAN (On-Premise CPU)`, 110, y + 22);
-
-  y += 36;
-
-  // SECTION: Quantitative Biomarkers
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(30, 41, 59);
-  doc.text("1. Quantitative Biomarkers & Radiographic Metrics", 14, y);
-
-  y += 6;
-  doc.setDrawColor(226, 232, 240);
-  doc.setLineWidth(0.4);
-  doc.line(14, y, pageWidth - 14, y);
-  y += 6;
-
-  // Table row: Handgrip
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.text("Peak Digital Handgrip Strength:", 18, y);
-  doc.setFont("helvetica", "normal");
-  const gripStatus = data.isGripLow ? "DEFICIENT (Below Cutoff)" : "NORMAL";
-  doc.text(
-    `${data.grip} kg (AWGS 2019 Cutoff: ${data.gripCutoff} kg) → Status: ${gripStatus}`,
-    85,
-    y
+  heading("Result");
+  row("Sarcopenia stage", STAGE[finalStage(s)].label, "AWGS 2019 rules");
+  if (s.override) row("System's stage", STAGE[s.stage].label, `changed by ${s.override.by}`);
+  row(
+    "Osteoporosis risk",
+    s.osteoTier ? TIER[s.osteoTier].label : "Not available",
+    s.osteoProb === null ? "needs the AI model" : `model probability ${Math.round(s.osteoProb * 100)}%`,
   );
 
-  y += 8;
-  doc.setFont("helvetica", "bold");
-  doc.text("Knee Soft-Tissue-to-Bone Ratio:", 18, y);
-  doc.setFont("helvetica", "normal");
-  doc.text(`${data.softTissueRatio.toFixed(2)} (Proxy for thigh muscle mass)`, 85, y);
+  heading("Measured values");
+  row(
+    "Best handgrip",
+    s.bestGrip === null ? "Not entered" : `${s.bestGrip} kg`,
+    s.bestGrip === null ? "" : `flag below ${s.gripCutoff} kg: ${flag(s.bestGrip < s.gripCutoff)}`,
+  );
+  if (s.chairStand != null) row("5-chair-stand time", `${s.chairStand} s`, `flag at ${CHAIR_CUTOFF} s or more: ${flag(s.chairStand >= CHAIR_CUTOFF)}`);
+  if (s.sarcF != null) row("SARC-F score", `${s.sarcF}`, `flag at 4 or more: ${flag(s.sarcF >= 4)}`);
+  if (s.calfCm != null) row("Calf circumference", `${s.calfCm} cm`);
+  const ratio = (x: number | null) => (x === null ? "Not available" : x.toFixed(2));
+  row("Thigh soft tissue to bone", ratio(s.features.thigh), "prototype measure, no cutoff");
+  row("Calf soft tissue to bone", ratio(s.features.calf), "prototype measure, no cutoff");
 
-  y += 8;
-  doc.setFont("helvetica", "bold");
-  doc.text("Knee AP X-Ray Quality Check:", 18, y);
-  doc.setFont("helvetica", "normal");
-  doc.text("PASSED (AP View Confirmed, Soft-tissue borders visible)", 85, y);
-
-  y += 16;
-
-  // SECTION: AI Model Diagnostic Findings
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(30, 41, 59);
-  doc.text("2. AI Fusion Model Risk Stratifications", 14, y);
-
-  y += 6;
-  doc.line(14, y, pageWidth - 14, y);
-  y += 8;
-
-  // Sarcopenia Card
-  doc.setFillColor(241, 245, 249);
-  doc.roundedRect(14, y, (pageWidth - 32) / 2, 26, 2, 2, "FD");
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 41, 59);
-  doc.text("Sarcopenia Screening Stage", 18, y + 8);
-  doc.setFontSize(12);
-  doc.setTextColor(225, 29, 72); // Rose/red
-  doc.text(`${data.sarcopeniaStage.toUpperCase()}`, 18, y + 16);
-  doc.setFontSize(8);
-  doc.setTextColor(100, 116, 139);
-  doc.text(`Fusion Probability Score: ${data.sarcopeniaScore}%`, 18, y + 22);
-
-  // Osteoporosis Card
-  const osteoX = 14 + (pageWidth - 32) / 2 + 4;
-  doc.setFillColor(241, 245, 249);
-  doc.roundedRect(osteoX, y, (pageWidth - 32) / 2, 26, 2, 2, "FD");
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(30, 41, 59);
-  doc.text("Osteoporosis Risk (Proximal Tibia)", osteoX + 4, y + 8);
-  doc.setFontSize(12);
-  doc.setTextColor(217, 119, 6); // Amber
-  doc.text(`${data.osteoRisk.toUpperCase()}`, osteoX + 4, y + 16);
-  doc.setFontSize(8);
-  doc.setTextColor(100, 116, 139);
-  doc.text(`Trabecular Texture Density: ${data.osteoProb}%`, osteoX + 4, y + 22);
-
-  y += 34;
-
-  // SECTION: Doctor Clinical Assessment
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(30, 41, 59);
-  doc.text("3. Physician Clinical Review & Override", 14, y);
-
-  y += 6;
-  doc.line(14, y, pageWidth - 14, y);
-  y += 8;
-
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(51, 65, 85);
-  const overrideText = data.doctorOverride
-    ? "Doctor Override Applied: Independent clinical review modified AI assessment."
-    : "AI Result Accepted by Reviewing Clinician (No override requested).";
-  doc.text(overrideText, 18, y);
-
-  if (data.overrideNote) {
-    y += 6;
-    doc.text(`Physician Notes: "${data.overrideNote}"`, 18, y);
+  if (!s.modelConnected) {
+    y += 1;
+    doc.setFont("helvetica", "italic").setFontSize(9).setTextColor(146, 64, 14);
+    doc.text(
+      doc.splitTextToSize(
+        "The AI model was not connected when this screening ran. The stage comes from handgrip and chair-stand rules only. Osteoporosis risk and the X-ray measurements were not produced.",
+        right - left,
+      ),
+      left,
+      y,
+    );
+    y += 10;
   }
 
-  y += 14;
-
-  // SECTION: Recommended Clinical Actions
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(30, 41, 59);
-  doc.text("4. Suggested Clinical Next Steps", 14, y);
-
-  y += 6;
-  doc.line(14, y, pageWidth - 14, y);
+  heading("Suggested action");
+  doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(30, 41, 59);
+  doc.text(doc.splitTextToSize(STAGE[finalStage(s)].action, right - left), left, y);
   y += 8;
 
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(71, 85, 105);
-  doc.text("• Progressive Resistance Training & Targeted Physical Therapy protocol.", 18, y);
-  y += 6;
-  doc.text("• Dietary protein supplementation (1.2 - 1.5 g/kg/day) + Vitamin D / Calcium check.", 18, y);
-  y += 6;
-  doc.text("• Schedule Dual-Energy X-Ray Absorptiometry (DEXA) for confirmatory diagnosis if high risk.", 18, y);
+  if (s.override) {
+    heading("Doctor's note");
+    doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(30, 41, 59);
+    const note = doc.splitTextToSize(s.override.reason || "No note given.", right - left);
+    doc.text(note, left, y);
+    y += 5 * note.length + 2;
+  }
 
-  // Footer Disclaimer
-  doc.setFontSize(7.5);
-  doc.setTextColor(148, 163, 184);
-  doc.setLineHeightFactor(1.3);
+  const xray = s.xrayId ? await xrayAsJpeg(s.xrayId) : null;
+  if (xray) {
+    heading("Knee X-ray");
+    const room = height - 26 - y;
+    const scale = Math.min(70 / xray.width, room / xray.height);
+    if (scale > 0) doc.addImage(xray.data, "JPEG", left, y, xray.width * scale, xray.height * scale);
+  }
+
+  doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(100, 116, 139);
   doc.text(
-    "DISCLAIMER: SarcoScan is an automated clinical AI screening and triage tool. It does not replace a definitive DEXA scan.\nData protected under DPDP Act 2023. Field-level encryption active on hospital server.",
-    14,
-    pageHeight - 16
+    doc.splitTextToSize(
+      "SarcoScan is a screening and referral aid built as a hackathon prototype. It is not a medical device and does not replace a DEXA scan or a doctor's judgement.",
+      right - left,
+    ),
+    left,
+    height - 14,
   );
 
-  // Direct Browser File Download Trigger
-  const safeFilename = `SarcoScan_Report_${data.patientTitle.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
-  doc.save(safeFilename);
+  doc.save(`SarcoScan_${patient.mrn}_${s.date}.pdf`);
 }

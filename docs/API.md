@@ -8,7 +8,7 @@ This file lists which endpoints exist, who may call them, and how far along they
 
 Status values: `planned`, `in progress`, `done`, `later` (after the demo flow works), `dropped`.
 
-`done` here means: written, and passing the tests in `backend/tests/` on SQLite. Nothing has been run against PostgreSQL yet.
+`done` here means: written, and passing the tests in `backend/tests/` on SQLite. The whole flow was also run through the web app, and the tables and audit triggers were created and checked on PostgreSQL 17.
 
 Roles: T = technician, D = doctor, A = admin. The role table in `SECURITY.md` is the source for these columns.
 
@@ -25,7 +25,7 @@ Roles: T = technician, D = doctor, A = admin. The role table in `SECURITY.md` is
 
 | Method | Path | Purpose | Who | Status |
 |---|---|---|---|---|
-| POST | `/patients` | Register a patient. Consent is required. A repeated MRN is refused. | T, D, A | done |
+| POST | `/patients` | Register a patient. Consent is required. A repeated MRN is refused. Phone is optional. | T, D, A | done |
 | GET | `/patients` | List, or search with `?q=` by name, MRN, or full phone number. | T, D, A | done |
 | GET | `/patients/{id}` | Patient details. | T, D, A | done |
 | PATCH | `/patients/{id}` | Update details. | T, D, A | later |
@@ -38,6 +38,7 @@ Name and phone are encrypted in the database (`SECURITY.md` section 8). Phone se
 | Method | Path | Purpose | Who | Status |
 |---|---|---|---|---|
 | POST | `/patients/{id}/visits` | Start a screening visit. BMI is worked out here. | T, D | done |
+| GET | `/visits` | Recent visits with their results, newest first. Used by the dashboard and the reports list. | T, D, A | done |
 | GET | `/visits/{id}` | Visit summary. | T, D, A | done |
 | POST | `/visits/{id}/clinical-inputs` | SARC-F, chair stand, calf circumference. | T, D | done |
 | POST | `/visits/{id}/grip` | Up to three readings per hand. Marks the best per hand and compares with the cutoff. Sending again replaces the earlier readings. | T, D | done |
@@ -75,7 +76,7 @@ A browser `<img>` tag cannot send the `Authorization` header. The UI fetches the
 | Method | Path | Purpose | Who | Status |
 |---|---|---|---|---|
 | GET | `/audit-logs` | Audit trail, newest first. | A | done |
-| GET | `/health` | Says the API is up. | anyone | done |
+| GET | `/health` | Says the API is up and whether an ML model is connected. | anyone | done |
 | POST, GET, PATCH, DELETE | `/users` | Manage users. `python -m backend.seed` creates the first admin, doctor, and technician. | A | later |
 | GET | `/stats/overview` | Dashboard numbers. | D, A | later |
 | GET, POST | `/devices` | Grip devices. | A | dropped (Bluetooth removed in spec v2) |

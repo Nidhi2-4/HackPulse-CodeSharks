@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { resetDemo, useStore } from "@/lib/store";
+import { ModelStatus } from "@/components/app";
+import { useStore } from "@/lib/store";
 
 export default function Settings() {
-  const { user } = useStore();
-  const [confirming, setConfirming] = useState(false);
+  const { user, modelConnected } = useStore();
 
   return (
     <>
@@ -19,19 +18,16 @@ export default function Settings() {
         <dd className="capitalize">{user?.role}</dd>
       </dl>
       <section className="card max-w-xl space-y-3">
-        <h2 className="h2">Demo data</h2>
+        <h2 className="h2">System</h2>
+        <ModelStatus />
         <p className="text-sm text-[#64748b]">
-          All data is stored in this browser only. Resetting removes every patient and screening you added and signs you out.
+          {modelConnected
+            ? "Screenings use the AI model for osteoporosis risk and the X-ray measurements."
+            : "Screenings still run: the sarcopenia stage comes from handgrip and chair-stand rules. Osteoporosis risk and the X-ray measurements appear once the model file is added on the server."}
         </p>
-        {confirming ? (
-          <button className="btn bg-red-700 hover:bg-red-800" onClick={resetDemo}>
-            Yes, erase and reset
-          </button>
-        ) : (
-          <button className="btn-ghost" onClick={() => setConfirming(true)}>
-            Reset demo data
-          </button>
-        )}
+        <p className="text-sm text-[#64748b]">
+          Patient data is stored on the hospital server. Nothing about a patient is kept in this browser.
+        </p>
       </section>
     </>
   );

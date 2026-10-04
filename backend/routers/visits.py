@@ -4,7 +4,7 @@ import time
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse
 from PIL import Image
 from sqlalchemy import delete, select
@@ -58,6 +58,11 @@ def _latest(db: Session, model, time_column, **where):
     return db.scalars(select(model).filter_by(**where).order_by(time_column.desc())).first()
 
 
+def _user_name(db: Session, user_id: uuid.UUID) -> str | None:
+    user = db.get(User, user_id)
+    return user.name if user else None
+
+
 def _grip_summary(db: Session, visit: Visit, patient: Patient) -> GripOut:
     best = {
         row.hand: row.value_kg
@@ -85,6 +90,8 @@ def _result(db: Session, visit: Visit, patient: Patient) -> ResultOut:
         patient_id=patient.id,
         visit_date=visit.visit_date,
         status=visit.status,
+        performed_by_name=_user_name(db, visit.performed_by),
+        reviewed_by_name=_user_name(db, review.doctor_id) if review else None,
         bmi=visit.bmi,
         grip=_grip_summary(db, visit, patient),
         sarcf_score=visit.sarcf_score,
@@ -135,6 +142,20 @@ def start_visit(
     audit.log(user, "CREATE", "visit", visit.id)
     db.commit()
     return visit
+
+
+@router.get("/visits", response_model=list[ResultOut])
+def list_visits(
+    limit: int = Query(200, ge=1, le=500),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*STAFF)),
+    audit: Audit = Depends(),
+):
+    visits = db.scalars(select(Visit).order_by(Visit.visit_date.desc()).limit(limit)).all()
+    audit.log(user, "VIEW", "visit_list")
+    db.commit()
+    # ponytail: several queries per visit. Fine for a clinic's recent list; join them if this page gets slow.
+    return [_result(db, visit, db.get(Patient, visit.patient_id)) for visit in visits]
 
 
 @router.get("/visits/{visit_id}", response_model=VisitOut)

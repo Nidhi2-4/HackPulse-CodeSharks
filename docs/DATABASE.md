@@ -2,7 +2,7 @@
 
 Owner: Anish. Last updated: 2026-10-04.
 
-PostgreSQL 15. Status: nine tables are defined in `backend/models.py` and tested on SQLite. They have not been created on PostgreSQL yet.
+PostgreSQL. Status: nine tables are defined in `backend/models.py`, tested on SQLite, and created on the team's development database (PostgreSQL 17 on Supabase), where the audit triggers were checked.
 
 The spec defines 14 tables (pages 14 to 20). The hackathon build has 9 of them; `reports` comes with PDF reports. Columns below follow the spec unless a note says otherwise.
 
@@ -48,8 +48,8 @@ The spec defines 14 tables (pages 14 to 20). The hackathon build has 9 of them; 
 | age | INT | the spec also allows a date of birth |
 | sex | ENUM(male, female, other) | |
 | height_cm, weight_kg | FLOAT | |
-| phone | VARCHAR | encrypted in the application |
-| phone_hash | VARCHAR | HMAC of the phone number, for exact-match search |
+| phone | VARCHAR, nullable | encrypted in the application; optional |
+| phone_hash | VARCHAR, nullable | HMAC of the phone number, for exact-match search |
 | consent_given | BOOLEAN | |
 | consent_at | TIMESTAMP | |
 | created_by | UUID, FK to users | |
@@ -185,5 +185,6 @@ Each review is a new row. The system's result in `analysis_results` is never cha
 ## Known gaps
 
 - Patient `name` and `phone` are encrypted columns, so name search happens in the application, not in SQL. It reads every patient row, which is fine for a demo and too slow for thousands of patients.
-- The append-only triggers on `audit_logs` are written for PostgreSQL and have not been run yet.
+- There are no migrations. One change is applied by hand at startup in `backend/main.py`: the phone columns became optional after the first tables were created.
+- The development database is reached through a connection pooler, so prepared statements are turned off in `backend/db.py`.
 - Tables are created at startup. Changing a column means dropping and recreating the table, which is acceptable only while the data is throwaway.

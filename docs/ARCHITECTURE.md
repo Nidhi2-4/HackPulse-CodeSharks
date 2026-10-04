@@ -2,7 +2,7 @@
 
 Owner: Anish, reviewed by everyone. Last updated: 2026-10-04.
 
-Status: the backend is written and tested on SQLite. The web app is being built. No model is connected. Nothing is committed to git yet.
+Status: the backend and the web app work together end to end. No model is connected, so image-based results are empty.
 
 The spec is `Documentation - SarcoScan (2).pdf` in this folder. Where this file and the spec differ, this file is the current plan, and the difference is listed under "What we build first".
 
@@ -37,14 +37,14 @@ Three rules hold the design together:
 
 | Part | Folder | Tech | Owner | Status |
 |---|---|---|---|---|
-| Backend API | `backend/` | Python, FastAPI, SQLAlchemy, Pydantic | Anish | in progress: screening flow done, PDF report left |
-| Database | Docker container | PostgreSQL 15 | Anish | in progress: tables defined, not yet run on PostgreSQL |
+| Backend API | `backend/` | Python, FastAPI, SQLAlchemy, Pydantic | Anish | done for the demo flow |
+| Database | hosted (Supabase) for development | PostgreSQL 17 | Anish | done |
 | File storage | `backend/uploads/` | local disk, with an optional Cloudinary copy | Anish | in progress |
 | Model training | `ml/notebooks/`, `ml/data/` | PyTorch, XGBoost | Pravesh | in progress |
 | Model inference | `ml/predict.py`, `ml/models/` | Python | Pravesh | planned |
-| Web UI | `web/` | Next.js 16, TypeScript, Tailwind | Nidhi | planned |
-| Mobile | `mobile/` | PWA install first, Capacitor shell later | Nidhi | planned, after web |
-| Desktop | `desktop/` | PWA install first, Tauri shell later | Nidhi, Anish | planned, after web |
+| Web UI | `frontend/web/` | Next.js 16, TypeScript, Tailwind, jsPDF | Nidhi | done: wired to the API. PWA manifest left. |
+| Mobile | the web app; notes in `MOBILE.md` | PWA install first, Capacitor shell later | Nidhi | planned. `frontend/mobile/` is an unused Expo template. |
+| Desktop | the web app; notes in `DESKTOP.md` | PWA install first, Tauri shell later | Nidhi, Anish | planned |
 
 ## One screening, start to finish
 
@@ -84,7 +84,7 @@ Why Tauri and not Electron for desktop: in Tauri the UI has no Node.js access an
 | Nginx reverse proxy | Next.js forwards `/api` to the backend | On-prem install |
 | React Native and Expo app | Responsive web, PWA, optional Capacitor shell | A feature needs native code |
 | Bluetooth dynamometer and firmware | Manual entry (spec v2, item 7) | The hardware exists |
-| 14 database tables | 8 tables, then 2 more with their features (`DATABASE.md`) | A feature needs them |
+| 14 database tables | 9 tables (`DATABASE.md`) | A feature needs them |
 | Alembic migrations | Tables created at startup | The schema changes after real data exists |
 | Not in the spec | Desktop app (PWA, then Tauri) | |
 
@@ -103,7 +103,10 @@ Why Tauri and not Electron for desktop: in Tauri the UI has no Node.js access an
 | 2026-10-04 | Handgrip is manual entry | decided (spec v2) |
 | 2026-10-04 | Backend framework is FastAPI, the spec's choice, because the ML code is Python too | decided |
 | 2026-10-04 | Files on local disk; a Cloudinary copy only for a hosted demo, free tier | decided by Anish. The copy must be private, see `SECURITY.md`. |
-| 2026-10-04 | The UI follows the design canvas linked in `FRONTEND.md` | decided |
+| 2026-10-04 | The web app keeps its own look; the design canvas linked in `FRONTEND.md` is a reference | decided |
+| 2026-10-04 | Development database on the Supabase free tier, reached through its pooler | decided by Anish |
+| 2026-10-04 | The PDF report is made in the browser from the stored result | decided |
+| 2026-10-04 | A result comes from an explicit Run screening action and is stored; it is not recalculated live as inputs change | decided |
 | 2026-10-04 | One UI plus shells, not separate native apps | proposed; team confirms |
 | 2026-10-04 | Tauri for the desktop shell | proposed |
 | 2026-10-04 | Sarcopenia stage comes from AWGS-style rules until labelled data exists | proposed; see `ML.md` |

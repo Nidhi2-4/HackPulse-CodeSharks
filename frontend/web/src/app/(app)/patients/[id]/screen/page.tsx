@@ -1,35 +1,35 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Findings } from "@/components/app";
-import { analyze, gripCutoff, newId, update, useStore, type Screening } from "@/lib/store";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState } from "react";
+import { Findings, XrayImage } from "@/components/app";
+import { downloadReport } from "@/lib/pdfReport";
+import { gripCutoff, runAnalysis, saveInputs, startVisit, uploadXray, useStore, type Screening } from "@/lib/store";
 
-const STEPS = ["Clinical inputs", "Handgrip", "X-ray upload & QC", "Analysis", "Results & review"];
-const PHASES = ["Quality check", "Segmenting bone and soft tissue", "Measuring muscle features", "Osteoporosis classifier", "Fusion model"];
+const STEPS = ["Clinical inputs", "Handgrip", "X-ray upload", "Results"];
 const HANDS = ["right", "left"] as const;
 const num = (s: string) => (s === "" ? undefined : Number(s));
 
 export default function ScreeningWizard() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const { patients, user } = useStore();
   const patient = patients.find((p) => p.id === id);
 
   const [step, setStep] = useState(0);
   const [clin, setClin] = useState({ sarcF: "", chairStand: "", calfCm: "" });
   const [grip, setGrip] = useState({ right: ["", "", ""], left: ["", "", ""] });
-  const [xray, setXray] = useState<{ name: string; url?: string; ok: boolean; msg: string } | null>(null);
-  const [phase, setPhase] = useState(0);
-
-  useEffect(() => {
-    if (step !== 3) return;
-    const t = setInterval(() => setPhase((p) => Math.min(p + 1, PHASES.length)), 700);
-    return () => clearInterval(t);
-  }, [step]);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState("");
+  const [visitId, setVisitId] = useState("");
+  // What the server is doing right now, an error to show, or the finished result.
+  const [progress, setProgress] = useState("");
+  const [problem, setProblem] = useState("");
+  const [result, setResult] = useState<Screening | null>(null);
 
   if (!patient) return <p>Patient not found.</p>;
-  const current = step === 3 && phase >= PHASES.length ? 4 : step;
+  if (user?.role === "admin") return <p>Screenings are run by technicians and doctors.</p>;
+
   const next = (e: React.FormEvent) => {
     e.preventDefault();
     setStep(step + 1);
@@ -37,55 +37,43 @@ export default function ScreeningWizard() {
   const best = Math.max(0, ...[...grip.right, ...grip.left].map(Number));
   const cutoff = gripCutoff(patient.sex);
 
-  async function pick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return setXray(null);
-    const name = file.name;
-    const ext = name.split(".").pop()?.toLowerCase() ?? "";
-    if (ext === "dcm") return setXray({ name, ok: true, msg: "DICOM accepted. View and crop checks run on the server." });
-    if (!["jpg", "jpeg", "png"].includes(ext)) return setXray({ name, ok: false, msg: "Unsupported file. Use DICOM, JPG or PNG." });
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.src = url;
-    try {
-      await img.decode();
-    } catch {
-      return setXray({ name, ok: false, msg: "Could not read this image." });
-    }
-    const size = `${img.naturalWidth} x ${img.naturalHeight}`;
-    const ok = Math.min(img.naturalWidth, img.naturalHeight) >= 512;
-    setXray({
-      name,
-      url,
-      ok,
-      msg: ok
-        ? `Resolution OK (${size}). Wrong-view and cropped-edge checks run on the server.`
-        : `Image too small (${size}). The short side must be at least 512 px.`,
-    });
+  function pick(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = e.target.files?.[0] ?? null;
+    setFile(picked);
+    setProblem("");
+    setPreview(picked ? URL.createObjectURL(picked) : "");
   }
 
-  const input = {
-    right: grip.right.map(Number),
-    left: grip.left.map(Number),
-    sarcF: num(clin.sarcF),
-    chairStand: num(clin.chairStand),
-    calfCm: num(clin.calfCm),
-  };
-  const result = current === 4 ? analyze(patient, input) : null;
-
-  function save() {
-    const s: Screening = {
-      id: newId(),
-      patientId: patient!.id,
-      date: new Date().toISOString().slice(0, 10),
-      xray: xray!.name, // only the file name is kept; the image never leaves this browser tab
-      by: user!.name,
-      ...input,
-      ...result!,
-      finalized: false,
-    };
-    update((st) => ({ screenings: [s, ...st.screenings] }), `Screened patient ${patient!.mrn}`);
-    router.push(`/reports/${s.id}`);
+  /** The one explicit action: save the inputs, upload and check the X-ray, then run the analysis. */
+  async function run(e: React.FormEvent) {
+    e.preventDefault();
+    if (!file) return;
+    setProblem("");
+    try {
+      setProgress("Saving handgrip and clinical inputs");
+      const visit = visitId || (await startVisit(patient!.id));
+      setVisitId(visit);
+      await saveInputs(visit, {
+        right: grip.right.map(Number),
+        left: grip.left.map(Number),
+        sarcF: num(clin.sarcF),
+        chairStand: num(clin.chairStand),
+        calfCm: num(clin.calfCm),
+      });
+      setProgress("Uploading the X-ray and checking its quality");
+      const xray = await uploadXray(visit, file);
+      if (!xray.qc_passed) {
+        setProblem(`This image cannot be used. ${xray.qc_reason ?? ""} Choose another image.`);
+        return;
+      }
+      setProgress("Running the analysis");
+      setResult(await runAnalysis(visit));
+      setStep(3);
+    } catch (err) {
+      setProblem(err instanceof Error ? err.message : "Something went wrong. Try again.");
+    } finally {
+      setProgress("");
+    }
   }
 
   return (
@@ -97,7 +85,7 @@ export default function ScreeningWizard() {
         {STEPS.map((s, i) => (
           <li
             key={s}
-            aria-current={i === current ? "step" : undefined}
+            aria-current={i === step ? "step" : undefined}
             className="rounded-full bg-white px-3 py-1 text-[#64748b] aria-[current]:bg-[#5f7a5a] aria-[current]:text-white"
           >
             {i + 1}. {s}
@@ -105,7 +93,7 @@ export default function ScreeningWizard() {
         ))}
       </ol>
 
-      {current === 0 && (
+      {step === 0 && (
         <form onSubmit={next} className="card grid max-w-2xl gap-4 sm:grid-cols-3">
           <p className="text-sm text-[#64748b] sm:col-span-3">All three are optional. Leave blank if not measured.</p>
           <label className="label">
@@ -124,7 +112,7 @@ export default function ScreeningWizard() {
         </form>
       )}
 
-      {current === 1 && (
+      {step === 1 && (
         <form onSubmit={next} className="card max-w-2xl space-y-4">
           <p className="text-sm text-[#64748b]">Three trials per hand, in kg. The best value is used.</p>
           {HANDS.map((hand) => (
@@ -136,7 +124,7 @@ export default function ScreeningWizard() {
                   type="number"
                   required
                   min={1}
-                  max={100}
+                  max={99}
                   step="0.1"
                   aria-label={`${hand} hand trial ${i + 1}`}
                   placeholder={`Trial ${i + 1}`}
@@ -160,53 +148,51 @@ export default function ScreeningWizard() {
         </form>
       )}
 
-      {current === 2 && (
-        <form
-          onSubmit={(e) => {
-            setPhase(0);
-            next(e);
-          }}
-          className="card max-w-2xl space-y-4"
-        >
+      {step === 2 && (
+        <form onSubmit={run} className="card max-w-2xl space-y-4">
           <label className="label">
-            Knee AP X-ray (DICOM, JPG or PNG)
-            <input type="file" required accept=".dcm,.jpg,.jpeg,.png" className="input" onChange={pick} />
+            Knee AP X-ray (JPG or PNG, up to 50 MB)
+            <input type="file" required accept=".jpg,.jpeg,.png,image/jpeg,image/png" className="input" onChange={pick} />
           </label>
-          {xray && (
-            <p role="status" className={`text-sm font-medium ${xray.ok ? "text-emerald-700" : "text-red-700"}`}>
-              {xray.msg}
+          {/* eslint-disable-next-line @next/next/no-img-element -- local preview of the chosen file */}
+          {preview && <img src={preview} alt="Chosen knee X-ray" className="max-h-72 rounded-lg bg-black" />}
+          {progress && (
+            <p role="status" className="text-sm font-medium">
+              {progress}...
             </p>
           )}
-          {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
-          {xray?.url && <img src={xray.url} alt="Uploaded knee X-ray preview" className="max-h-72 rounded-lg" />}
+          {problem && (
+            <p role="alert" className="text-sm font-medium text-red-700">
+              {problem}
+            </p>
+          )}
           <div className="flex justify-between">
-            <button type="button" className="btn-ghost" onClick={() => setStep(1)}>
+            <button type="button" className="btn-ghost" disabled={!!progress} onClick={() => setStep(1)}>
               Back
             </button>
-            <button className="btn" disabled={!xray?.ok}>
-              Run analysis
+            <button className="btn" disabled={!file || !!progress}>
+              Run screening
             </button>
           </div>
         </form>
       )}
 
-      {current === 3 && (
-        <section className="card max-w-2xl space-y-3" aria-live="polite">
-          <progress value={phase} max={PHASES.length} className="h-2 w-full accent-[#5f7a5a]" />
-          <p className="text-sm font-medium">{PHASES[phase]}...</p>
-        </section>
-      )}
-
-      {result && (
+      {step === 3 && result && (
         <section className="space-y-4">
-          <Findings patient={patient} r={{ ...input, ...result }} />
-          <div className="flex justify-between">
-            <button className="btn-ghost" onClick={() => setStep(2)}>
-              Back
+          <Findings patient={patient} r={result} />
+          {result.xrayId && (
+            <div className="card">
+              <h2 className="h2">Knee X-ray</h2>
+              <XrayImage xrayId={result.xrayId} hasOverlay={result.hasOverlay} />
+            </div>
+          )}
+          <div className="flex flex-wrap justify-end gap-3">
+            <button className="btn-ghost" onClick={() => downloadReport(patient, result)}>
+              Download PDF report
             </button>
-            <button className="btn" onClick={save}>
-              Save and open report
-            </button>
+            <Link href={`/reports/${result.id}`} className="btn">
+              Open report for review
+            </Link>
           </div>
         </section>
       )}

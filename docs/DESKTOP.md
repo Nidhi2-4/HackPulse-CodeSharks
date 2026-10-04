@@ -1,14 +1,14 @@
-# desktop
+# Desktop shell
 
 Owner: Nidhi, with Anish for the build (Rust is already installed on Anish's machine).
 
 Status on 2026-10-04: nothing built. Start only after the web UI works. The steps below follow the Tauri v2 docs and have not been run in this repo yet; correct this file when you run them.
 
-This folder will hold a Tauri shell: a small desktop program whose window opens the SarcoScan web UI from the server. No UI code lives here. Background in [docs/FRONTEND.md](../docs/FRONTEND.md) and [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
+The plan is a Tauri shell: a small desktop program whose window opens the SarcoScan web UI from the server. No UI code lives here. Background in [FRONTEND.md](FRONTEND.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Try this first: install the web app
 
-In Chrome or Edge, open the SarcoScan URL and click the install icon in the address bar. The app gets its own window and taskbar icon. This needs the PWA manifest described in `docs/FRONTEND.md` and nothing in this folder.
+In Chrome or Edge, open the SarcoScan URL and click the install icon in the address bar. The app gets its own window and taskbar icon. This needs the PWA manifest described in `FRONTEND.md` and nothing else.
 
 Build the Tauri shell only if an `.exe` installer is required.
 
@@ -17,7 +17,8 @@ Build the Tauri shell only if an `.exe` installer is required.
 Needed on the build machine (Windows): Rust, Microsoft C++ Build Tools, and WebView2, which ships with Windows 11. Full list: https://v2.tauri.app/start/prerequisites/
 
 ```
-cd desktop
+mkdir frontend/desktop
+cd frontend/desktop
 npm init -y
 npm install -D @tauri-apps/cli@latest
 npx tauri init

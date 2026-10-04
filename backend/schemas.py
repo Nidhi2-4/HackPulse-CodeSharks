@@ -34,7 +34,7 @@ class PatientIn(BaseModel):
     sex: Sex
     height_cm: float = Field(gt=50, lt=250)
     weight_kg: float = Field(gt=10, lt=300)
-    phone: str = Field(min_length=6, max_length=20)
+    phone: str | None = Field(default=None, min_length=6, max_length=20)
     abha_id: str | None = Field(default=None, max_length=40)
     consent_given: bool
 
@@ -49,7 +49,7 @@ class PatientOut(BaseModel):
     sex: Sex
     height_cm: float
     weight_kg: float
-    phone: str
+    phone: str | None
     abha_id: str | None
     consent_given: bool
     consent_at: datetime
@@ -122,6 +122,8 @@ class ResultOut(BaseModel):
     patient_id: uuid.UUID
     visit_date: datetime
     status: VisitStatus
+    performed_by_name: str | None
+    reviewed_by_name: str | None
     bmi: float
     grip: GripOut
     sarcf_score: int | None

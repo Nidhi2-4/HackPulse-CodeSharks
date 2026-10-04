@@ -18,7 +18,7 @@ export default function Studies() {
           <thead>
             <tr>
               <th>Received</th>
-              <th>File</th>
+              <th>X-ray id</th>
               <th>Patient</th>
               <th>Uploaded by</th>
               <th />
@@ -28,7 +28,7 @@ export default function Studies() {
             {[...screenings].sort(byDateDesc).map((s) => (
               <tr key={s.id}>
                 <td>{s.date}</td>
-                <td>{s.xray}</td>
+                <td className="font-mono">{s.xrayId ? s.xrayId.slice(0, 8) : "None"}</td>
                 <td>{patients.find((p) => p.id === s.patientId)?.name ?? "Unassigned"}</td>
                 <td>{s.by}</td>
                 <td>

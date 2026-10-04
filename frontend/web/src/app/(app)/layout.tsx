@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { update, useStore } from "@/lib/store";
+import { ModelStatus } from "@/components/app";
+import { signOut, useStore } from "@/lib/store";
 
 const NAV = [
   ["/dashboard", "Dashboard"],
@@ -47,10 +48,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <br />
           <span className="capitalize">{user.role}</span>
         </p>
-        <button
-          className="btn-ghost"
-          onClick={() => update(() => ({ user: null }), "Logged out")}
-        >
+        <div className="px-3 pb-2">
+          <ModelStatus />
+        </div>
+        <button className="btn-ghost" onClick={signOut}>
           Log out
         </button>
       </nav>

@@ -1,150 +1,93 @@
 /**
- * SarcoScan Frontend API Client
- * Automatically routed through Next.js proxy to FastAPI backend (/api/v1)
+ * Calls to the SarcoScan backend. Next.js forwards /api to FastAPI (see next.config.ts),
+ * so the browser only ever talks to its own origin.
  */
 
-export interface TokenResponse {
-  access_token: string;
-  token_type: string;
-}
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "doctor" | "technician";
-}
-
-export interface PatientCreate {
-  mrn: string;
-  name: string;
-  age: number;
-  sex: "male" | "female" | "other";
-  height_cm: number;
-  weight_kg: number;
-  phone: string;
-  consent_given: boolean;
-}
-
-export interface AnalysisOutput {
-  id: string;
-  sarcopenia_stage: "none" | "possible" | "probable" | "severe";
-  sarcopenia_prob?: number;
-  osteoporosis_tier: "low" | "moderate" | "high";
-  osteoporosis_prob: number;
-  thigh_soft_to_bone?: number;
-  calf_soft_to_bone?: number;
-  kl_grade?: number;
-  inference_ms: number;
-  overlay_url?: string;
-  gradcam_url?: string;
-}
-
-// In-memory token storage (XSS safe per SECURITY.md)
+// The access token lives only in this variable. It is never written to browser storage,
+// so a script injected into the page cannot read it from there.
 let accessToken: string | null = null;
+let refreshing: Promise<boolean> | null = null;
 
-export function setAccessToken(token: string | null) {
-  accessToken = token;
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
 }
 
-export function getAccessToken(): string | null {
-  return accessToken;
+async function errorFrom(response: Response): Promise<ApiError> {
+  let message = `Request failed (${response.status})`;
+  try {
+    const body = await response.json();
+    if (typeof body.detail === "string") message = body.detail;
+    else if (Array.isArray(body.detail)) message = body.detail.map((d: { msg: string }) => d.msg).join(". ");
+  } catch {
+    // not JSON: keep the generic message
+  }
+  return new ApiError(response.status, message);
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const headers = new Headers(options.headers || {});
-  
-  if (!headers.has("Content-Type") && !(options.body instanceof FormData)) {
-    headers.set("Content-Type", "application/json");
-  }
+/**
+ * Get a new access token with the refresh cookie. Calls made at the same time share one request:
+ * the backend rotates the cookie on every refresh and treats a second use of the old one as theft.
+ */
+export function refresh(): Promise<boolean> {
+  refreshing ??= fetch("/api/v1/auth/refresh", { method: "POST" })
+    .then(async (response) => {
+      accessToken = response.ok ? (await response.json()).access_token : null;
+      return response.ok;
+    })
+    .catch(() => false)
+    .finally(() => {
+      refreshing = null;
+    });
+  return refreshing;
+}
 
-  if (accessToken) {
-    headers.set("Authorization", `Bearer ${accessToken}`);
-  }
+function send(path: string, init: RequestInit): Promise<Response> {
+  const headers = new Headers(init.headers);
+  if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
+  return fetch(`/api/v1${path}`, { ...init, headers });
+}
 
-  const response = await fetch(`/api/v1${path}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `Request failed with status ${response.status}`);
-  }
-
-  return response.json();
+async function request(path: string, init: RequestInit = {}): Promise<Response> {
+  let response = await send(path, init);
+  // The access token lasts 15 minutes. On 401, refresh once and repeat the call.
+  if (response.status === 401 && (await refresh())) response = await send(path, init);
+  if (!response.ok) throw await errorFrom(response);
+  return response;
 }
 
 export const api = {
-  // Auth
-  async login(email: string, password: string): Promise<TokenResponse> {
-    const res = await request<TokenResponse>("/auth/login", {
+  get: <T>(path: string) => request(path).then((r) => r.json() as Promise<T>),
+  post: <T>(path: string, body?: unknown) =>
+    request(path, {
       method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
-    setAccessToken(res.access_token);
-    return res;
+      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }).then((r) => r.json() as Promise<T>),
+  upload: <T>(path: string, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return request(path, { method: "POST", body: form }).then((r) => r.json() as Promise<T>);
   },
-
-  async getMe(): Promise<UserProfile> {
-    return request<UserProfile>("/auth/me");
-  },
-
-  async logout(): Promise<void> {
-    await request("/auth/logout", { method: "POST" });
-    setAccessToken(null);
-  },
-
-  // Patients
-  async createPatient(patient: PatientCreate) {
-    return request("/patients", {
-      method: "POST",
-      body: JSON.stringify(patient),
-    });
-  },
-
-  async getPatients(search?: string) {
-    const query = search ? `?search=${encodeURIComponent(search)}` : "";
-    return request(`/patients${query}`);
-  },
-
-  // Visits & Screening Flow
-  async createVisit(patientId: string) {
-    return request(`/patients/${patientId}/visits`, {
-      method: "POST",
-    });
-  },
-
-  async submitGrip(visitId: string, trials: { left: number[]; right: number[] }) {
-    return request(`/visits/${visitId}/grip`, {
-      method: "POST",
-      body: JSON.stringify(trials),
-    });
-  },
-
-  async uploadXray(visitId: string, file: File) {
-    const formData = new FormData();
-    formData.append("file", file);
-    return request(`/visits/${visitId}/xray`, {
-      method: "POST",
-      body: formData,
-    });
-  },
-
-  async runAnalysis(visitId: string): Promise<AnalysisOutput> {
-    return request<AnalysisOutput>(`/visits/${visitId}/analyze`, {
-      method: "POST",
-    });
-  },
-
-  async getResult(visitId: string): Promise<AnalysisOutput> {
-    return request<AnalysisOutput>(`/visits/${visitId}/result`);
-  },
-
-  async submitReview(visitId: string, review: { final_stage: string; agrees_with_ai: boolean; notes: string }) {
-    return request(`/visits/${visitId}/review`, {
-      method: "POST",
-      body: JSON.stringify(review),
-    });
-  },
+  /** X-rays need the login token, so they are fetched here instead of through an <img src>. */
+  blob: (path: string) => request(path).then((r) => r.blob()),
 };
+
+export async function login(email: string, password: string): Promise<void> {
+  const response = await fetch("/api/v1/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!response.ok) throw await errorFrom(response);
+  accessToken = (await response.json()).access_token;
+}
+
+export async function logout(): Promise<void> {
+  accessToken = null;
+  await fetch("/api/v1/auth/logout", { method: "POST" }).catch(() => undefined);
+}
