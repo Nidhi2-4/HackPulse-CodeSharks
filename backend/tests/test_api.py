@@ -19,6 +19,7 @@ import io  # noqa: E402
 import sys  # noqa: E402
 
 sys.modules["ml.predict"] = None  # these tests check the API with no model, on any machine
+sys.modules["ml.tabular"] = None
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
@@ -170,7 +171,7 @@ def test_sarcopenia_stage_rule():
     assert sarcopenia_stage("male", 28.0, None, True) is Stage.none
 
 
-def test_screening_flow_from_visit_to_review(client):
+def test_screening_flow_from_visit_to_review(client, monkeypatch):
     technician = login(client, "technician")
     patient_id = client.post("/api/v1/patients", json=PATIENT, headers=technician).json()["id"]
     visit = client.post(f"/api/v1/patients/{patient_id}/visits", headers=technician).json()
@@ -181,7 +182,9 @@ def test_screening_flow_from_visit_to_review(client):
         return client.post(f"{base}/xray", files={"file": ("knee.png", content, "image/png")}, headers=technician)
 
     assert client.post(f"{base}/analyze", headers=technician).status_code == 409  # no X-ray yet
-    inputs = {"sarcf_score": 5, "chair_stand_5_sec": 10.6}
+    bad_history = {"sarcf_score": 5, "history": {"owns_a_cat": True}}
+    assert client.post(f"{base}/clinical-inputs", json=bad_history, headers=technician).status_code == 422
+    inputs = {"sarcf_score": 5, "chair_stand_5_sec": 10.6, "waist_cm": 78, "history": {"steroid_use": True}}
     assert client.post(f"{base}/clinical-inputs", json=inputs, headers=technician).status_code == 200
     readings = {"left": [15.2, 15.8, 15.5], "right": [16.0, 16.4, 16.1]}
     grip = client.post(f"{base}/grip", json=readings, headers=technician).json()
@@ -199,8 +202,19 @@ def test_screening_flow_from_visit_to_review(client):
     xray = upload(good_bytes).json()
     assert xray["qc_passed"] is True
 
+    # With the body-measurement models answering "low muscle", the same visit becomes probable.
+    seen = {}
+    fake = {"low_muscle": True, "low_muscle_prob": 0.9, "bone_loss": True, "bone_loss_prob": 0.7}
+    monkeypatch.setattr("backend.routers.visits.run_tabular_models", lambda *a: seen.update(args=a) or fake)
+    with_models = client.post(f"{base}/analyze", headers=technician).json()
+    assert with_models["sarcopenia_stage"] == "probable" and with_models["low_muscle"] is True
+    assert with_models["bone_loss"] is True and with_models["bone_loss_prob"] == 0.7
+    assert seen["args"][5:] == (78, None, 15.8, 16.4, {"steroid_use": True})  # waist, arm, grips, history
+    monkeypatch.undo()
+
     result = client.post(f"{base}/analyze", headers=technician).json()
-    assert result["sarcopenia_stage"] == "possible"  # low grip, and no image measurement yet
+    assert result["sarcopenia_stage"] == "possible"  # low grip, and no muscle evidence without the models
+    assert result["low_muscle"] is None and result["history"] == {"steroid_use": True}
     assert result["model_connected"] is False and result["osteoporosis_tier"] is None
     assert result["sarcf_positive"] is True and result["chair_stand_slow"] is False
 
@@ -225,7 +239,9 @@ def test_screening_flow_from_visit_to_review(client):
     assert [(v["visit_id"], v["performed_by_name"], v["reviewed_by_name"]) for v in visits] == [
         (visit["id"], "technician", "doctor")
     ]
-    assert client.get("/api/v1/health").json() == {"status": "ok", "model_connected": False}
+    assert client.get("/api/v1/health").json() == {
+        "status": "ok", "model_connected": False, "tabular_connected": False,
+    }
     admin = login(client, "admin")
     assert client.post(f"/api/v1/patients/{patient_id}/visits", headers=admin).status_code == 403
 

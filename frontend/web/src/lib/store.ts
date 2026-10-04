@@ -25,6 +25,10 @@ export type ScreeningInput = {
   sarcF?: number;
   chairStand?: number;
   calfCm?: number;
+  waistCm?: number;
+  armCm?: number;
+  /** Medical-history answers. Leave out when the patient was not asked. */
+  history?: Record<string, boolean>;
 };
 /** One analysed visit. Image-based fields are null until an ML model is connected to the backend. */
 export type Screening = {
@@ -48,6 +52,14 @@ export type Screening = {
   osteoProb: number | null;
   osteoTier: Tier | null;
   klGrade: number | null;
+  /** From the two body-measurement models; null when they are not installed on the server. */
+  lowMuscle: boolean | null;
+  lowMuscleProb: number | null;
+  boneLoss: boolean | null;
+  boneLossProb: number | null;
+  waistCm?: number;
+  armCm?: number;
+  historyAsked: boolean;
   override?: { stage: Stage; reason: string; by: string };
   reviewedBy?: string;
   finalized: boolean;
@@ -89,6 +101,31 @@ export const TIER: Record<Tier, { label: string; cls: string }> = {
 // AWGS 2019 cutoffs. The backend applies the same ones; these are for instant feedback while typing.
 export const gripCutoff = (sex: Sex) => (sex === "M" ? 28 : 18);
 export const CHAIR_CUTOFF = 12;
+/** The yes or no questions of the bone-loss model. Keys match HISTORY_QUESTIONS in backend/analysis.py. */
+export const HISTORY_QUESTIONS: [string, string][] = [
+  ["prior_hip_fracture", "Hip fracture before"],
+  ["prior_wrist_fracture", "Wrist fracture before"],
+  ["prior_spine_fracture", "Spine fracture before"],
+  ["parent_hip_fracture", "A parent had a hip fracture"],
+  ["steroid_use", "Takes steroid tablets"],
+  ["smoker_ever", "Has ever smoked"],
+  ["smoker_current", "Smokes now"],
+  ["diabetes", "Diabetes"],
+  ["prediabetes", "Prediabetes"],
+  ["hypertension", "High blood pressure"],
+  ["high_cholesterol", "High cholesterol"],
+  ["arthritis", "Arthritis"],
+  ["gout", "Gout"],
+  ["weak_kidneys", "Kidney disease"],
+  ["liver_condition", "Liver disease"],
+  ["cancer", "Cancer, now or before"],
+  ["heart_failure", "Heart failure"],
+  ["coronary_heart_disease", "Coronary heart disease"],
+  ["heart_attack", "Heart attack before"],
+  ["stroke", "Stroke before"],
+  ["vigorous_recreation", "Does vigorous exercise or sport"],
+  ["moderate_recreation", "Does moderate exercise (brisk walk, cycling)"],
+];
 export const SEX_LABEL: Record<Sex, string> = { M: "Male", F: "Female", O: "Other" };
 export const bmi = (p: Patient) => p.weightKg / (p.heightCm / 100) ** 2;
 export const finalStage = (s: Screening) => s.override?.stage ?? s.stage;
@@ -127,6 +164,13 @@ type ApiResult = {
   soft_to_plateau: number | null;
   soft_area_ratio: number | null;
   kl_grade: number | null;
+  waist_cm: number | null;
+  arm_circ_cm: number | null;
+  history: Record<string, boolean> | null;
+  low_muscle: boolean | null;
+  low_muscle_prob: number | null;
+  bone_loss: boolean | null;
+  bone_loss_prob: number | null;
   review: { final_stage: Stage; agrees_with_ai: boolean; notes: string | null } | null;
 };
 type ApiAudit = { user_id: string; action: string; entity_type: string; entity_id: string | null; ip_address: string; created_at: string };
@@ -172,6 +216,13 @@ function toScreening(r: ApiResult): Screening {
     osteoProb: r.osteoporosis_prob,
     osteoTier: r.osteoporosis_tier,
     klGrade: r.kl_grade,
+    lowMuscle: r.low_muscle,
+    lowMuscleProb: r.low_muscle_prob,
+    boneLoss: r.bone_loss,
+    boneLossProb: r.bone_loss_prob,
+    waistCm: r.waist_cm ?? undefined,
+    armCm: r.arm_circ_cm ?? undefined,
+    historyAsked: r.history !== null,
     override:
       r.review && !r.review.agrees_with_ai
         ? { stage: r.review.final_stage, reason: r.review.notes ?? "", by: r.reviewed_by_name ?? "Doctor" }
@@ -261,6 +312,9 @@ export async function saveInputs(visitId: string, input: ScreeningInput): Promis
     sarcf_score: input.sarcF ?? null,
     chair_stand_5_sec: input.chairStand ?? null,
     calf_circumference_cm: input.calfCm ?? null,
+    waist_cm: input.waistCm ?? null,
+    arm_circ_cm: input.armCm ?? null,
+    history: input.history ?? null,
   });
   await api.post(`/visits/${visitId}/grip`, { left: input.left, right: input.right });
 }

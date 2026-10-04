@@ -69,6 +69,9 @@ The spec defines 14 tables (pages 14 to 20). The hackathon build has 9 of them; 
 | sarcf_score | INT, nullable | 0 to 10 |
 | chair_stand_5_sec | FLOAT, nullable | |
 | calf_circumference_cm | FLOAT, nullable | |
+| waist_cm | FLOAT, nullable | input of the muscle-mass model |
+| arm_circ_cm | FLOAT, nullable | input of the muscle-mass model |
+| history_json | TEXT, nullable | medical-history answers as JSON; empty when not asked |
 
 The last three columns are the spec's `clinical_inputs` table. It is one-to-one with a visit, so it is folded in here.
 
@@ -116,6 +119,8 @@ The last three columns are the spec's `clinical_inputs` table. It is one-to-one 
 | cortical_index | not built | add if the model produces it |
 | kl_grade | INT, nullable | 0 to 4, bonus output |
 | sarcopenia_prob | FLOAT, nullable | stays empty while the stage comes from rules; see `ML.md` |
+| low_muscle, low_muscle_prob | BOOLEAN, FLOAT, nullable | from the muscle-mass model in `ml/tabular.py` |
+| bone_loss, bone_loss_prob | BOOLEAN, FLOAT, nullable | from the bone-loss model in `ml/tabular.py` |
 | sarcopenia_stage | ENUM(none, possible, probable, severe) | |
 | osteoporosis_prob | FLOAT, nullable | empty until a model is connected |
 | osteoporosis_tier | ENUM(low, moderate, high), nullable | empty until a model is connected |
@@ -188,3 +193,5 @@ Each review is a new row. The system's result in `analysis_results` is never cha
 - There are no migrations. One change is applied by hand at startup in `backend/main.py`: the phone columns became optional after the first tables were created.
 - The development database is reached through a connection pooler, so prepared statements are turned off in `backend/db.py`.
 - Tables are created at startup. Changing a column means dropping and recreating the table, which is acceptable only while the data is throwaway.
+
+New nullable columns are added to existing databases at startup (`backend/main.py`); there is no Alembic yet.

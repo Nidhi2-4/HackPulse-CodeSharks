@@ -2,7 +2,7 @@
 
 Owner: Pravesh. Last updated: 2026-10-04.
 
-Status: two DenseNet121 classifiers (osteoporosis, KL grade) are trained and connected to the app through `ml/predict.py`. The training scripts are in `ml/training/` and `ml/predict.py` uses the same preprocessing (pad to square, 224 px, mirror-averaged). Neither model has an external test. The scripts include exact and near-duplicate checks and keep both knees of one image in the same split; the counts they found are not recorded here. Muscle ratios, overlay, and Grad-CAM are not built.
+Status: four models are connected to the app. Two DenseNet121 classifiers read the X-ray (osteoporosis, KL grade) through `ml/predict.py`. Two models read body measurements and medical history (low muscle mass, bone loss) through `ml/tabular.py`. The training scripts are in `ml/training/` and `ml/predict.py` uses the same preprocessing (pad to square, 224 px, mirror-averaged). Neither model has an external test. The scripts include exact and near-duplicate checks and keep both knees of one image in the same split; the counts they found are not recorded here. Muscle ratios, overlay, and Grad-CAM are not built.
 
 ## What the product needs from ML
 
@@ -11,7 +11,7 @@ Status: two DenseNet121 classifiers (osteoporosis, KL grade) are trained and con
 | Osteoporosis risk: probability and tier (low, moderate, high) | Must-have 10 | Image classifier (fine-tuned CNN) on the knee X-ray | `osteoporosis/main`, tested on `osteoporosis/external` | done (internal test only) |
 | KL osteoarthritis grade, 0 to 4 | Should-have, bonus only | Image classifier (fine-tuned CNN) | `kl_grade/main`, tested on `external` and `cgmh` | done (internal test only) |
 | Muscle proxy: four soft-tissue-to-bone ratios | Must-have 5 and 6 | Segmentation mask, then pixel counting | No labelled masks exist | planned |
-| Sarcopenia stage (none, possible, probable, severe) | Must-have 9 | AWGS-style rules for now | No public labelled data found | planned |
+| Sarcopenia stage (none, possible, probable, severe) | Must-have 9 | AWGS rules on grip and chair stand, with low muscle mass from a model on body measurements | NHANES 2011 to 2014 (US) | done; muscle evidence is not from the X-ray yet |
 | X-ray quality check | Must-have 4 | Simple rules first | none needed | planned |
 | Heatmap (Grad-CAM) | Must-have 11 | `pytorch-grad-cam` on the osteoporosis CNN | none needed | planned |
 
@@ -206,9 +206,13 @@ Figures are copied from Pravesh's training reports (`models/models/*_report.json
 
 How the app uses them: the tier is the predicted class (Normal = low, Osteopenia = moderate, Osteoporosis = high) and `osteoporosis_prob` is the probability of the Osteoporosis class. CPU time on Anish's laptop: about 170 ms per image for both models, about 10 s to load at startup.
 
-### Tabular models (received 2026-10-04, not connected)
+### Tabular models (connected 2026-10-04)
 
-Pravesh also shared three models that use numbers, not the image. They are in `models/models/` locally and in the Drive folder. None is used by the app, and none has a row above because no report file came with them.
+Pravesh also shared three models that use numbers, not the image. They are in `models/models/` locally and in the Drive folder. `ml/tabular.py` loads the two that are in use (`python -m ml.tabular` checks them) and the analyze endpoint calls both.
+
+How the app uses them: "low muscle mass" from the first model is the muscle evidence in the sarcopenia stage rule, so the stage can now reach probable and severe. "Bone loss" from the second is shown as a separate line next to the X-ray result and changes nothing else. Waist, arm circumference, and the history answers are optional; what is missing the model fills in with typical values, and the result says so. The US ethnicity code is never sent.
+
+Seen on five made-up patients on 2026-10-04: the muscle model separated thin from heavy people as expected. The bone-loss model answered "likely" for all five, including a fit 62-year-old man (probability 0.41, cutoff 0.32), which fits its low specificity. Pravesh says `sarcopenia_model.joblib` and `sarcopenia_ann.keras` are not used. Scores stored inside the files (5-fold cross-validation on NHANES, not re-measured): muscle model ROC-AUC 0.954, sensitivity 0.851, specificity 0.904; bone-loss model ROC-AUC 0.791, sensitivity 0.851, specificity 0.551.
 
 | File | Predicts | Inputs |
 |---|---|---|

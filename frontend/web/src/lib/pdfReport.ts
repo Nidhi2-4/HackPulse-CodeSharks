@@ -131,7 +131,9 @@ export function buildReport(patient: Patient, s: Screening, logo: Picture | null
     STAGE_INK[stage],
     s.override
       ? `Set by ${s.override.by}. The system's stage was ${STAGE[s.stage].label}.`
-      : "Basis: AWGS 2019 rules on handgrip and chair stand",
+      : s.lowMuscle === null
+        ? "Basis: AWGS 2019 rules on handgrip and chair stand"
+        : "Basis: AWGS 2019 rules, with the muscle-mass model",
   );
   card(
     left + cardWidth + 6,
@@ -168,9 +170,40 @@ export function buildReport(patient: Patient, s: Screening, logo: Picture | null
     measure("5-chair-stand time", `${s.chairStand} s`, `Slow at ${CHAIR_CUTOFF} s or more (AWGS 2019)`, s.chairStand >= CHAIR_CUTOFF);
   if (s.sarcF != null) measure("SARC-F score", `${s.sarcF}`, "Positive at 4 or more (AWGS 2019)", s.sarcF >= 4);
   if (s.calfCm != null) measure("Calf circumference", `${s.calfCm} cm`, "Not used in the stage rule");
+  if (s.waistCm != null) measure("Waist", `${s.waistCm} cm`, "Input of the muscle-mass model");
+  if (s.armCm != null) measure("Upper arm circumference", `${s.armCm} cm`, "Input of the muscle-mass model");
+  if (s.lowMuscle !== null)
+    measure(
+      "Muscle mass (model)",
+      s.lowMuscle ? "Likely low" : "Likely normal",
+      s.lowMuscleProb === null ? "" : `Model probability ${Math.round(s.lowMuscleProb * 100)}%`,
+      s.lowMuscle,
+    );
+  if (s.boneLoss !== null)
+    measure(
+      "Bone loss from history (model)",
+      s.boneLoss ? "Likely" : "Unlikely",
+      s.boneLossProb === null ? "" : `Model probability ${Math.round(s.boneLossProb * 100)}%`,
+      s.boneLoss,
+    );
   const ratio = (x: number | null) => (x === null ? "Not available" : x.toFixed(2));
   measure("Thigh soft tissue to bone", ratio(s.features.thigh), "Prototype measure, no cutoff");
   measure("Calf soft tissue to bone", ratio(s.features.calf), "Prototype measure, no cutoff");
+
+  if (s.lowMuscle !== null) {
+    y += 5;
+    write(
+      "The two model rows above come from body measurements and history, learned from a US health survey (adults 20 to 59 for muscle mass). They are not validated on Indian or older patients.",
+      left,
+      y,
+      8,
+      MUTED,
+      "italic",
+      "left",
+      span,
+    );
+    y += 4;
+  }
 
   if (!s.modelConnected) {
     y += 6;

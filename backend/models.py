@@ -123,6 +123,11 @@ class Visit(Base):
     sarcf_score: Mapped[int | None] = mapped_column(Integer)
     chair_stand_5_sec: Mapped[float | None] = mapped_column(Float)
     calf_circumference_cm: Mapped[float | None] = mapped_column(Float)
+    # Optional inputs of the muscle-mass model (ml/tabular.py).
+    waist_cm: Mapped[float | None] = mapped_column(Float)
+    arm_circ_cm: Mapped[float | None] = mapped_column(Float)
+    # Medical-history answers as JSON text ({question: true or false}); empty when history was not asked.
+    history_json: Mapped[str | None] = mapped_column(Text)
 
 
 class GripMeasurement(Base):
@@ -170,6 +175,11 @@ class AnalysisResult(Base):
     # Empty until a trained model is connected. The API never fills these with made-up values.
     osteoporosis_prob: Mapped[float | None] = mapped_column(Float)
     osteoporosis_tier: Mapped[Tier | None] = mapped_column(Enum(Tier, name="osteoporosis_tier"))
+    # From the two models in ml/tabular.py. Empty when they are not installed.
+    low_muscle: Mapped[bool | None] = mapped_column(Boolean)
+    low_muscle_prob: Mapped[float | None] = mapped_column(Float)
+    bone_loss: Mapped[bool | None] = mapped_column(Boolean)
+    bone_loss_prob: Mapped[float | None] = mapped_column(Float)
     inference_ms: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 

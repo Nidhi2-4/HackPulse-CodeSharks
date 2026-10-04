@@ -159,7 +159,10 @@ export function Findings({ patient, r, stage = r.stage }: { patient: Patient; r:
           <dt className="h2">Sarcopenia stage</dt>
           <dd>
             <StageBadge stage={stage} />
-            <span className="mt-1 block text-xs text-[#64748b]">From AWGS 2019 rules. A rule has no probability.</span>
+            <span className="mt-1 block text-xs text-[#64748b]">
+              From AWGS 2019 rules on grip and chair stand
+              {r.lowMuscle === null ? ". No muscle estimate was available." : ", plus the muscle-mass model below."}
+            </span>
           </dd>
         </div>
         <div className="card">
@@ -197,6 +200,28 @@ export function Findings({ patient, r, stage = r.stage }: { patient: Patient; r:
         </table>
       </div>
       {r.klGrade !== null && <p className="text-sm">Knee osteoarthritis grade (KL): {r.klGrade}. For information only.</p>}
+      {r.lowMuscle !== null && (
+        <div className="card text-sm">
+          <h2 className="h2">From body measurements and history (second models)</h2>
+          <p>
+            Muscle mass: <strong>{r.lowMuscle ? "Likely low" : "Likely normal"}</strong>
+            {r.lowMuscleProb !== null && ` (model probability ${pct(r.lowMuscleProb)})`}. Used in the sarcopenia stage.
+          </p>
+          {r.boneLoss !== null && (
+            <p>
+              Bone loss from history: <strong>{r.boneLoss ? "Likely" : "Unlikely"}</strong>
+              {r.boneLossProb !== null && ` (model probability ${pct(r.boneLossProb)})`}. A second opinion next to the X-ray
+              result; if the two disagree, the doctor decides.
+            </p>
+          )}
+          <p className="mt-1 text-xs text-[#64748b]">
+            These two models learned from a US health survey (adults 20 to 59 for muscle mass) and are not validated on
+            Indian or older patients.
+            {(r.waistCm == null || r.armCm == null) && " Waist or arm circumference was not entered, so the model used typical values."}
+            {!r.historyAsked && " Medical history was not asked, so the model used typical answers."}
+          </p>
+        </div>
+      )}
       <p className="text-sm">
         <strong>Suggested action:</strong> {STAGE[stage].action}
       </p>

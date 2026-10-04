@@ -16,3 +16,10 @@ httpx2>=2
 # Needed by ml/predict.py. CPU builds: add --index-url https://download.pytorch.org/whl/cpu
 torch==2.7.1
 torchvision==0.22.1
+
+# Needed by ml/tabular.py. The model files were saved with these versions.
+scikit-learn==1.6.1
+xgboost
+joblib
+pandas
+h5py

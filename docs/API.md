@@ -54,6 +54,8 @@ The quality check looks at size, shape, colour, and contrast. It rejects colour 
 
 Patient ranges: age 18 to 120, height 120 to 220 cm, weight 25 to 250 kg.
 
+`clinical-inputs` also takes `waist_cm`, `arm_circ_cm`, and `history` (an object of yes or no answers; the allowed keys are `HISTORY_QUESTIONS` in `backend/analysis.py`; leave it out when the patient was not asked). The result adds `low_muscle`, `low_muscle_prob`, `bone_loss`, and `bone_loss_prob`, all empty when `ml/tabular.py` cannot load. `/health` reports `model_connected` (X-ray models) and `tabular_connected`.
+
 ## Files
 
 These two are not in the spec. They exist because X-rays sit on local disk and must never be reachable without a login.

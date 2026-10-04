@@ -61,7 +61,9 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 - [x] Final model in `ml/models/`, row added to Results in `ML.md` (internal test only)
 - [x] Preprocessing in `ml/predict.py` matches the training scripts, now in `ml/training/`
 - [ ] Pravesh: train with stronger brightness augmentation; a 30% brighter copy of one image changed the tier
+- [x] Muscle-mass and bone-loss models connected (`ml/tabular.py`), with waist, arm, and history inputs
 - [ ] Pravesh: external test and overlap check for both models
+- [ ] Pravesh: the bone-loss model flags almost everyone; raise its cutoff or retrain
 - [ ] `ml/predict.py` with a function the backend can call (M1, a placeholder is fine at first)
 - [ ] Muscle ratios with a threshold mask, and the overlay image
 - [ ] Sarcopenia stage rules

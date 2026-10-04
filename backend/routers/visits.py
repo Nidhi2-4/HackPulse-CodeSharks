@@ -1,4 +1,5 @@
 """One screening visit: inputs, X-ray, analysis, result, review."""
+import json
 import logging
 import time
 import uuid
@@ -11,7 +12,14 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from .. import storage
-from ..analysis import CHAIR_STAND_SLOW_SEC, SARCF_POSITIVE, grip_cutoff, run_model, sarcopenia_stage
+from ..analysis import (
+    CHAIR_STAND_SLOW_SEC,
+    SARCF_POSITIVE,
+    grip_cutoff,
+    run_model,
+    run_tabular_models,
+    sarcopenia_stage,
+)
 from ..db import get_db
 from ..models import (
     AnalysisResult,
@@ -88,6 +96,7 @@ def _result(db: Session, visit: Visit, patient: Patient) -> ResultOut:
     review = _latest(db, DoctorReview, DoctorReview.reviewed_at, visit_id=visit.id)
     fields = ("osteoporosis_prob", "osteoporosis_tier", "thigh_soft_to_bone", "calf_soft_to_bone")
     fields += ("soft_to_plateau", "soft_area_ratio", "kl_grade", "inference_ms", "sarcopenia_stage", "model_version")
+    fields += ("low_muscle", "low_muscle_prob", "bone_loss", "bone_loss_prob")
     return ResultOut(
         visit_id=visit.id,
         patient_id=patient.id,
@@ -104,6 +113,9 @@ def _result(db: Session, visit: Visit, patient: Patient) -> ResultOut:
             None if visit.chair_stand_5_sec is None else visit.chair_stand_5_sec >= CHAIR_STAND_SLOW_SEC
         ),
         calf_circumference_cm=visit.calf_circumference_cm,
+        waist_cm=visit.waist_cm,
+        arm_circ_cm=visit.arm_circ_cm,
+        history=json.loads(visit.history_json) if visit.history_json else None,
         xray_id=xray.id if xray else None,
         has_overlay=bool(analysis and analysis.overlay_storage_key),
         model_connected=bool(analysis and analysis.model_version != "not-connected"),
@@ -197,6 +209,9 @@ def save_clinical_inputs(
     visit.sarcf_score = body.sarcf_score
     visit.chair_stand_5_sec = body.chair_stand_5_sec
     visit.calf_circumference_cm = body.calf_circumference_cm
+    visit.waist_cm = body.waist_cm
+    visit.arm_circ_cm = body.arm_circ_cm
+    visit.history_json = json.dumps(body.history) if body.history is not None else None
     audit.log(user, "UPDATE", "visit", visit.id)
     db.commit()
     return visit
@@ -289,9 +304,15 @@ def analyze(
     if xray is None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Upload an X-ray that passes the quality check first")
 
+    grip = _grip_summary(db, visit, patient)
     started = time.perf_counter()
     try:
         output = run_model(storage.path(xray.storage_key), patient.age, patient.sex.value, visit.bmi)
+        tabular = run_tabular_models(
+            patient.age, patient.sex.value, patient.height_cm, patient.weight_kg, visit.bmi,
+            visit.waist_cm, visit.arm_circ_cm, grip.best_left, grip.best_right,
+            json.loads(visit.history_json) if visit.history_json else None,
+        )
         tier = Tier(output["osteoporosis_tier"]) if output.get("osteoporosis_tier") else None
         overlay = _stored_name(output.get("overlay_path"))
         gradcam = _stored_name(output.get("gradcam_path"))
@@ -303,7 +324,10 @@ def analyze(
         ) from None
     elapsed_ms = int((time.perf_counter() - started) * 1000)
 
-    grip = _grip_summary(db, visit, patient)
+    # Evidence of low muscle: a measurement from the X-ray when one exists, else the body-measurement model.
+    low_muscle = output.get("low_muscle")
+    if low_muscle is None:
+        low_muscle = tabular.get("low_muscle")
     result = AnalysisResult(
         visit_id=visit.id,
         xray_id=xray.id,
@@ -316,8 +340,12 @@ def analyze(
         soft_area_ratio=output.get("soft_area_ratio"),
         kl_grade=output.get("kl_grade"),
         sarcopenia_stage=sarcopenia_stage(
-            patient.sex.value, grip.best_kg, visit.chair_stand_5_sec, output.get("low_muscle")
+            patient.sex.value, grip.best_kg, visit.chair_stand_5_sec, low_muscle
         ),
+        low_muscle=low_muscle,
+        low_muscle_prob=tabular.get("low_muscle_prob"),
+        bone_loss=tabular.get("bone_loss"),
+        bone_loss_prob=tabular.get("bone_loss_prob"),
         osteoporosis_prob=output.get("osteoporosis_prob"),
         osteoporosis_tier=tier,
         inference_ms=elapsed_ms,

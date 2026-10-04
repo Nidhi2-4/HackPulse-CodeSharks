@@ -3,8 +3,9 @@ import uuid
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from .analysis import HISTORY_QUESTIONS
 from .models import Role, Sex, Stage, Tier, VisitStatus
 
 
@@ -67,12 +68,26 @@ class VisitOut(BaseModel):
     sarcf_score: int | None
     chair_stand_5_sec: float | None
     calf_circumference_cm: float | None
+    waist_cm: float | None
+    arm_circ_cm: float | None
 
 
 class ClinicalIn(BaseModel):
     sarcf_score: int | None = Field(default=None, ge=0, le=10)
     chair_stand_5_sec: float | None = Field(default=None, gt=0, lt=300)
     calf_circumference_cm: float | None = Field(default=None, gt=10, lt=100)
+    waist_cm: float | None = Field(default=None, gt=40, lt=200)
+    arm_circ_cm: float | None = Field(default=None, gt=10, lt=70)
+    # Medical history: {question: yes or no}. Leave out when the patient was not asked.
+    history: dict[str, bool] | None = None
+
+    @field_validator("history")
+    @classmethod
+    def known_questions(cls, value):
+        unknown = set(value or {}) - set(HISTORY_QUESTIONS)
+        if unknown:
+            raise ValueError(f"Unknown history questions: {sorted(unknown)}")
+        return value
 
 
 Kilograms = Annotated[float, Field(gt=0, lt=100)]
@@ -131,6 +146,14 @@ class ResultOut(BaseModel):
     chair_stand_5_sec: float | None
     chair_stand_slow: bool | None
     calf_circumference_cm: float | None
+    waist_cm: float | None
+    arm_circ_cm: float | None
+    history: dict[str, bool] | None
+    # From the two body-measurement models; empty when they are not installed.
+    low_muscle: bool | None
+    low_muscle_prob: float | None
+    bone_loss: bool | None
+    bone_loss_prob: float | None
     xray_id: uuid.UUID | None
     has_overlay: bool
     # False while ml/predict.py is not in the repo: the image-based fields below are then empty.

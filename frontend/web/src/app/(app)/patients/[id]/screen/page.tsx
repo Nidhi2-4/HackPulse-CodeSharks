@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Findings, XrayImage } from "@/components/app";
 import { downloadReport } from "@/lib/pdfReport";
-import { gripCutoff, runAnalysis, saveInputs, startVisit, uploadXray, useStore, type Screening } from "@/lib/store";
+import { HISTORY_QUESTIONS, gripCutoff, runAnalysis, saveInputs, startVisit, uploadXray, useStore, type Screening } from "@/lib/store";
 
 const STEPS = ["Clinical inputs", "Handgrip", "X-ray upload", "Results"];
 const HANDS = ["right", "left"] as const;
@@ -17,7 +17,9 @@ export default function ScreeningWizard() {
   const patient = patients.find((p) => p.id === id);
 
   const [step, setStep] = useState(0);
-  const [clin, setClin] = useState({ sarcF: "", chairStand: "", calfCm: "" });
+  const [clin, setClin] = useState({ sarcF: "", chairStand: "", calfCm: "", waistCm: "", armCm: "" });
+  // null until the technician says the history was asked; then every unticked box means no.
+  const [history, setHistory] = useState<Record<string, boolean> | null>(null);
   const [grip, setGrip] = useState({ right: ["", "", ""], left: ["", "", ""] });
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
@@ -46,7 +48,8 @@ export default function ScreeningWizard() {
 
   /** Demo helper: made-up inputs and the sample image from public/samples, ready to run. */
   async function fillSample() {
-    setClin({ sarcF: "5", chairStand: "13.5", calfCm: "31" });
+    setClin({ sarcF: "5", chairStand: "13.5", calfCm: "31", waistCm: "78", armCm: "24" });
+    setHistory({ prior_wrist_fracture: true, arthritis: true, hypertension: true });
     setGrip({ right: ["15.5", "16.2", "15.8"], left: ["14.1", "14.9", "14.4"] });
     const blob = await (await fetch("/samples/sample_knee_left.jpg")).blob();
     setFile(new File([blob], "sample_knee_left.jpg", { type: "image/jpeg" }));
@@ -70,6 +73,9 @@ export default function ScreeningWizard() {
         sarcF: num(clin.sarcF),
         chairStand: num(clin.chairStand),
         calfCm: num(clin.calfCm),
+        waistCm: num(clin.waistCm),
+        armCm: num(clin.armCm),
+        history: history ?? undefined,
       });
       setProgress("Uploading the X-ray and checking its quality");
       const xray = await uploadXray(visit, file);
@@ -111,7 +117,7 @@ export default function ScreeningWizard() {
 
       {step === 0 && (
         <form onSubmit={next} className="card grid max-w-2xl gap-4 sm:grid-cols-3">
-          <p className="text-sm text-[#64748b] sm:col-span-3">All three are optional. Leave blank if not measured.</p>
+          <p className="text-sm text-[#64748b] sm:col-span-3">All are optional. Leave blank if not measured.</p>
           <label className="label">
             SARC-F score (0 to 10)
             <input type="number" min={0} max={10} className="input" value={clin.sarcF} onChange={(e) => setClin({ ...clin, sarcF: e.target.value })} />
@@ -124,6 +130,31 @@ export default function ScreeningWizard() {
             Calf circumference (cm)
             <input type="number" min={15} max={70} step="0.1" className="input" value={clin.calfCm} onChange={(e) => setClin({ ...clin, calfCm: e.target.value })} />
           </label>
+          <label className="label">
+            Waist (cm)
+            <input type="number" min={41} max={199} step="0.1" className="input" value={clin.waistCm} onChange={(e) => setClin({ ...clin, waistCm: e.target.value })} />
+          </label>
+          <label className="label">
+            Upper arm circumference (cm)
+            <input type="number" min={11} max={69} step="0.1" className="input" value={clin.armCm} onChange={(e) => setClin({ ...clin, armCm: e.target.value })} />
+          </label>
+          <fieldset className="sm:col-span-3">
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <input type="checkbox" checked={history !== null} onChange={(e) => setHistory(e.target.checked ? {} : null)} />
+              Medical history was asked
+            </label>
+            {history !== null && (
+              <div className="mt-2 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
+                <p className="text-xs text-[#64748b] sm:col-span-2">Tick what applies. An unticked box is recorded as no.</p>
+                {HISTORY_QUESTIONS.map(([key, label]) => (
+                  <label key={key} className="flex min-h-11 items-center gap-2 sm:min-h-0">
+                    <input type="checkbox" checked={!!history[key]} onChange={(e) => setHistory({ ...history, [key]: e.target.checked })} />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            )}
+          </fieldset>
           <button className="btn sm:col-span-3 sm:justify-self-end">Next</button>
         </form>
       )}
