@@ -69,7 +69,7 @@ The hospital name and address are typed on the sign-in page and remembered in th
 
 ## The screening flow
 
-1. Clinical inputs (optional): SARC-F, 5-chair-stand time, calf circumference.
+1. Clinical inputs (all optional): the five SARC-F questions (the score is added up on screen; all five or none), 5-chair-stand time, calf circumference, waist, upper arm circumference, and a medical-history checklist. **Fill sample values** fills every step with made-up values and the sample X-ray.
 2. Handgrip: three trials per hand. The best value and the cutoff show while typing.
 3. X-ray: choose a JPG or PNG, then press **Run screening**. That one button saves the inputs, uploads the image, runs the server's quality check, and runs the analysis. Each stage is named on screen while it happens. If the image fails the check, the reason is shown and another image can be chosen.
 4. Results: stage, risk, measured values next to cutoffs, the X-ray, **Download PDF report**, and a link to the report page.

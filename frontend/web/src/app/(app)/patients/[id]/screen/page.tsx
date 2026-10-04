@@ -10,6 +10,14 @@ import { HISTORY_QUESTIONS, gripCutoff, runAnalysis, saveInputs, startVisit, upl
 const STEPS = ["Clinical inputs", "Handgrip", "X-ray upload", "Results"];
 const HANDS = ["right", "left"] as const;
 const num = (s: string) => (s === "" ? undefined : Number(s));
+// SARC-F (Malmstrom and Morley): five questions, each scored 0, 1 or 2. The total is the score.
+const SARC_F: [string, [string, string, string]][] = [
+  ["Lifting and carrying about 4.5 kg", ["No difficulty", "Some", "A lot, or unable"]],
+  ["Walking across a room", ["No difficulty", "Some", "A lot, uses aids, or unable"]],
+  ["Getting up from a chair or bed", ["No difficulty", "Some", "A lot, or unable without help"]],
+  ["Climbing 10 stairs", ["No difficulty", "Some", "A lot, or unable"]],
+  ["Falls in the past year", ["None", "1 to 3 falls", "4 or more falls"]],
+];
 
 export default function ScreeningWizard() {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +25,10 @@ export default function ScreeningWizard() {
   const patient = patients.find((p) => p.id === id);
 
   const [step, setStep] = useState(0);
-  const [clin, setClin] = useState({ sarcF: "", chairStand: "", calfCm: "", waistCm: "", armCm: "" });
+  const [clin, setClin] = useState({ chairStand: "", calfCm: "", waistCm: "", armCm: "" });
+  // One answer per SARC-F question; "" until it is asked. The score exists only when all five are answered.
+  const [sarc, setSarc] = useState(["", "", "", "", ""]);
+  const sarcScore = sarc.every((a) => a !== "") ? sarc.reduce((sum, a) => sum + Number(a), 0) : undefined;
   // null until the technician says the history was asked; then every unticked box means no.
   const [history, setHistory] = useState<Record<string, boolean> | null>(null);
   const [grip, setGrip] = useState({ right: ["", "", ""], left: ["", "", ""] });
@@ -48,7 +59,8 @@ export default function ScreeningWizard() {
 
   /** Demo helper: made-up inputs and the sample image from public/samples, ready to run. */
   async function fillSample() {
-    setClin({ sarcF: "5", chairStand: "13.5", calfCm: "31", waistCm: "78", armCm: "24" });
+    setClin({ chairStand: "13.5", calfCm: "31", waistCm: "78", armCm: "24" });
+    setSarc(["1", "1", "1", "1", "1"]);
     setHistory({ prior_wrist_fracture: true, arthritis: true, hypertension: true });
     setGrip({ right: ["15.5", "16.2", "15.8"], left: ["14.1", "14.9", "14.4"] });
     const blob = await (await fetch("/samples/sample_knee_left.jpg")).blob();
@@ -70,7 +82,7 @@ export default function ScreeningWizard() {
       await saveInputs(visit, {
         right: grip.right.map(Number),
         left: grip.left.map(Number),
-        sarcF: num(clin.sarcF),
+        sarcF: sarcScore,
         chairStand: num(clin.chairStand),
         calfCm: num(clin.calfCm),
         waistCm: num(clin.waistCm),
@@ -118,10 +130,33 @@ export default function ScreeningWizard() {
       {step === 0 && (
         <form onSubmit={next} className="card grid max-w-2xl gap-4 sm:grid-cols-3">
           <p className="text-sm text-[#64748b] sm:col-span-3">All are optional. Leave blank if not measured.</p>
-          <label className="label">
-            SARC-F score (0 to 10)
-            <input type="number" min={0} max={10} className="input" value={clin.sarcF} onChange={(e) => setClin({ ...clin, sarcF: e.target.value })} />
-          </label>
+          <fieldset className="sm:col-span-3">
+            <legend className="label mb-1">
+              SARC-F questions. Score: <strong>{sarcScore ?? "-"}</strong> of 10
+              {sarcScore !== undefined && (sarcScore >= 4 ? " (positive: 4 or more)" : " (negative)")}
+            </legend>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {SARC_F.map(([question, answers], i) => (
+                <label key={question} className="label">
+                  {question}
+                  <select
+                    className="input"
+                    value={sarc[i]}
+                    // All five or none: a half-answered questionnaire has no score.
+                    required={sarc.some((a) => a !== "")}
+                    onChange={(e) => setSarc(sarc.with(i, e.target.value))}
+                  >
+                    <option value="">Not asked</option>
+                    {answers.map((answer, points) => (
+                      <option key={answer} value={points}>
+                        {answer} ({points})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <label className="label">
             5-chair-stand time (s)
             <input type="number" min={1} max={120} step="0.1" className="input" value={clin.chairStand} onChange={(e) => setClin({ ...clin, chairStand: e.target.value })} />
