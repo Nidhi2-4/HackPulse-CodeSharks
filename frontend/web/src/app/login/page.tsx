@@ -18,9 +18,19 @@ export default function Login() {
     if (ready && user) router.replace("/dashboard");
   }, [ready, user, router]);
 
+  // The hospital name and address go on the PDF letterhead. They are a setting of this device,
+  // not patient data, so they are remembered in the browser.
+  useEffect(() => {
+    const form = document.querySelector("form")!;
+    for (const key of ["hospitalName", "hospitalAddress"]) {
+      (form.elements.namedItem(key) as HTMLInputElement).value = localStorage.getItem(key) ?? "";
+    }
+  }, []);
+
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
+    for (const key of ["hospitalName", "hospitalAddress"]) localStorage.setItem(key, String(data.get(key)).trim());
     setBusy(true);
     setError("");
     try {
@@ -45,6 +55,14 @@ export default function Login() {
           Password
           <input name="password" type="password" required autoComplete="current-password" className="input" />
         </label>
+        <label className="label">
+          Hospital name (shown on reports)
+          <input name="hospitalName" maxLength={60} autoComplete="organization" className="input" />
+        </label>
+        <label className="label">
+          Hospital address (optional)
+          <input name="hospitalAddress" maxLength={80} autoComplete="off" className="input" />
+        </label>
         {error && (
           <p role="alert" className="text-sm text-red-700">
             {error}
@@ -66,6 +84,13 @@ export default function Login() {
               (form.elements.namedItem("email") as HTMLInputElement).value = `${role}@sarcoscan.local`;
               const password = form.elements.namedItem("password") as HTMLInputElement;
               password.value = DEMO_PASSWORDS[role] ?? "";
+              // Made-up hospital for demos; kept if something is already typed.
+              const fill = (key: string, value: string) => {
+                const input = form.elements.namedItem(key) as HTMLInputElement;
+                if (!input.value) input.value = value;
+              };
+              fill("hospitalName", "CodeSharks Demo Hospital");
+              fill("hospitalAddress", "Orthopaedics OPD, Jaipur, Rajasthan");
               password.focus();
             }}
           >

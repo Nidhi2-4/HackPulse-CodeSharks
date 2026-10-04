@@ -4,9 +4,9 @@ import { CHAIR_CUTOFF, SEX_LABEL, STAGE, TIER, finalStage, type Patient, type Sc
 
 // The built-in PDF fonts only cover Latin-1, so every string here sticks to plain characters.
 
-// Shown in the letterhead. Set per deployment in .env.local; the default makes it obvious this is a demo.
-const HOSPITAL = process.env.NEXT_PUBLIC_HOSPITAL_NAME || "Demo Hospital";
-const HOSPITAL_ADDRESS = process.env.NEXT_PUBLIC_HOSPITAL_ADDRESS || "";
+// Shown in the letterhead. Typed on the sign-in page and remembered on this device; the default makes
+// it obvious when nothing was entered.
+const saved = (key: string) => (typeof localStorage === "undefined" ? "" : (localStorage.getItem(key) ?? ""));
 
 const DISCLAIMER =
   "SarcoScan is a screening and referral aid built as a hackathon prototype. It is not a medical device and does not replace a DEXA scan or a doctor's judgement.";
@@ -20,6 +20,8 @@ const BRAND_DARK: Rgb = [3, 105, 161];
 const GOOD: Rgb = [4, 120, 87];
 const WARN: Rgb = [180, 83, 9];
 const BAD: Rgb = [185, 28, 28];
+/** The colour at the given strength over white: a see-through look without PDF transparency. */
+const tint = (color: Rgb, strength: number) => color.map((c) => Math.round(255 - (255 - c) * strength)) as Rgb;
 // The word is always printed next to the colour; the colour alone never carries the meaning.
 const STAGE_INK: Record<Stage, Rgb> = { none: GOOD, possible: WARN, probable: [194, 65, 12], severe: BAD };
 const TIER_INK: Record<Tier, Rgb> = { low: GOOD, moderate: WARN, high: BAD };
@@ -50,6 +52,8 @@ export function buildReport(patient: Patient, s: Screening, logo: Picture | null
   const span = right - left;
   const reportNo = s.id.slice(0, 8).toUpperCase();
   const stage = finalStage(s);
+  const HOSPITAL = saved("hospitalName") || "Demo Hospital";
+  const HOSPITAL_ADDRESS = saved("hospitalAddress");
   let y = 0;
 
   const write = (
@@ -117,8 +121,7 @@ export function buildReport(patient: Patient, s: Screening, logo: Picture | null
   heading("Result");
   const cardWidth = (span - 6) / 2;
   const card = (x: number, label: string, value: string, color: Rgb, note: string) => {
-    doc.setFillColor(255, 255, 255).setDrawColor(...LINE).rect(x, y, cardWidth, 27, "FD");
-    doc.setFillColor(...color).rect(x, y, 1.6, 27, "F");
+    doc.setFillColor(...tint(color, 0.1)).setDrawColor(...tint(color, 0.35)).roundedRect(x, y, cardWidth, 27, 2, 2, "FD");
     write(label, x + 6, y + 6.5, 8, MUTED, "bold");
     write(value, x + 6, y + 14.5, 16, color, "bold");
     write(note, x + 6, y + 20, 8, MUTED, "normal", "left", cardWidth - 10);
@@ -189,8 +192,7 @@ export function buildReport(patient: Patient, s: Screening, logo: Picture | null
   heading("Suggested action");
   const action = STAGE[stage].action;
   const actionHeight = 5 * lineCount(action, 9.5, span - 10) + 5;
-  doc.setFillColor(240, 249, 255).rect(left, y - 2, span, actionHeight, "F");
-  doc.setFillColor(...BRAND).rect(left, y - 2, 1.6, actionHeight, "F");
+  doc.setFillColor(...tint(BRAND, 0.08)).setDrawColor(...tint(BRAND, 0.3)).roundedRect(left, y - 2, span, actionHeight, 2, 2, "FD");
   write(action, left + 6, y + 4, 9.5, INK, "normal", "left", span - 10);
   y += actionHeight - 2;
 
