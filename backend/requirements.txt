@@ -23,3 +23,7 @@ xgboost
 joblib
 pandas
 h5py
+scipy  # ml/muscle.py
+
+# Optional private copy of uploads when STORAGE_BACKEND=cloudinary.
+cloudinary

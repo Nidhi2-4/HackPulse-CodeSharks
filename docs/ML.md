@@ -10,7 +10,7 @@ Status: four models are connected to the app. Two DenseNet121 classifiers read t
 |---|---|---|---|---|
 | Osteoporosis risk: probability and tier (low, moderate, high) | Must-have 10 | Image classifier (fine-tuned CNN) on the knee X-ray | `osteoporosis/main`, tested on `osteoporosis/external` | done (internal test only) |
 | KL osteoarthritis grade, 0 to 4 | Should-have, bonus only | Image classifier (fine-tuned CNN) | `kl_grade/main`, tested on `external` and `cgmh` | done (internal test only) |
-| Muscle proxy: four soft-tissue-to-bone ratios | Must-have 5 and 6 | Segmentation mask, then pixel counting | No labelled masks exist | planned |
+| Muscle proxy: four soft-tissue-to-bone ratios, with an overlay | Must-have 5 and 6 | Image processing in `ml/muscle.py`: bone edges, joint line, widths at two levels. No trained model | none needed | done as an estimate; shown, not used in the stage |
 | Sarcopenia stage (none, possible, probable, severe) | Must-have 9 | AWGS rules on grip and chair stand, with low muscle mass from a model on body measurements | NHANES 2011 to 2014 (US) | done; muscle evidence is not from the X-ray yet |
 | X-ray quality check | Must-have 4 | Simple rules first | none needed | planned |
 | Heatmap (Grad-CAM) | Must-have 11 | `pytorch-grad-cam` on the osteoporosis CNN | none needed | planned |
@@ -133,6 +133,14 @@ From the spec (page 6):
 There are no labelled masks to train a U-Net on. Start with thresholds: air is dark, soft tissue is mid-grey, bone is bright, so `skimage.filters.threshold_multiotsu` with three classes gives a rough mask. Call it a heuristic everywhere it is described. Replace it with a trained segmentation model only if someone labels masks.
 
 Thresholding does not work on every image. It fails on white borders, text burned into the picture, very dark or very bright exposures, and images where the other leg is in frame. Reject those at the quality check instead of returning wrong ratios.
+
+### What was built (2026-10-04)
+
+`ml/muscle.py`, called from `ml/predict.py`. It grew out of Pravesh's `ml/training/muscle_measure.py`, which used one brightness threshold and painted most of the leg as bone, and returned ratios like 117 on images it could not read. The current version finds the bone from its edges in each row, finds the joint as the dark gap where the bone is widest, measures at the two levels, and refuses when the result does not look like a leg.
+
+Seen on 24 test X-rays (2 local, 22 from Wikimedia Commons, none labelled): 16 measured, 8 refused (joint line not found, or the leg edge cut off). The overlays were checked by eye: the joint line was in the right place on every measured image; the bone outline was right on most and blocky on a few shafts. About 70 ms per image. No number here has been compared with DXA or any other muscle measurement.
+
+The ratios and the overlay are shown on the result and in the report. They do not change the sarcopenia stage: no cutoff for them exists, so `low_muscle` is not returned.
 
 ## Sarcopenia stage
 

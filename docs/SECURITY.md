@@ -196,6 +196,6 @@ Say these openly if a judge asks. They are in the spec but not in the hackathon 
 | 14 | Append-only triggers on `audit_logs` | done. On PostgreSQL 17, UPDATE, DELETE and TRUNCATE were each refused. |
 | 15 | Name and phone encrypted with AES-256-GCM, `phone_hash` for search | done |
 | 16 | DICOM uploads converted to PNG, original discarded | later. DICOM uploads are refused for now. |
-| 17 | Cloud copies of X-rays are private, with signed links | not met. `backend/storage.py` mirrors to Cloudinary with a default upload, which anyone with the link can open. |
+| 17 | Cloud copies of X-rays are private, with signed links | done for the upload: `backend/storage.py` uploads with type `authenticated`, so no public URL exists. Not exercised against a real Cloudinary account. The app never serves from Cloudinary; images are read from local disk through the authenticated endpoints. |
 | 18 | The web app loads no third-party script at run time | done. A Tailwind CDN script tag was removed; styles are compiled at build time. |
 | 19 | No patient data in browser storage | done. The earlier localStorage store was replaced by calls to the backend. |

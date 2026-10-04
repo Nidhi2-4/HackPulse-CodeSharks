@@ -20,7 +20,8 @@ ml/
 ├── training/              Pravesh's scripts: dataset cleaning, duplicate checks, splits, training
 ├── models/                the four weight files the backend loads. Not in git: copy them in from the team's Drive.
 ├── reports/               training reports and plots (in git)
-├── predict.py             functions the backend imports (the two X-ray models)
+├── predict.py             functions the backend imports (the two X-ray models, and muscle.py)
+├── muscle.py              soft-tissue to bone ratios and the overlay, by image processing
 └── tabular.py             the two models that use body measurements and history; the backend calls it
 ```
 

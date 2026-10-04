@@ -1,4 +1,4 @@
-"""Where uploaded X-rays and overlays are kept. Supports local disk and Cloudinary."""
+"""Where uploaded X-rays and overlays are kept: always on local disk, with an optional private copy on Cloudinary."""
 import logging
 import shutil
 import uuid
@@ -9,21 +9,21 @@ from .config import settings
 
 logger = logging.getLogger(__name__)
 
-# Configure Cloudinary if URL is available
-_cloudinary_configured = False
-if settings.cloudinary_url:
+# The copy on Cloudinary is made only when STORAGE_BACKEND=cloudinary and CLOUDINARY_URL is set.
+_mirror = False
+if settings.storage_backend == "cloudinary" and settings.cloudinary_url:
     try:
         import cloudinary
         import cloudinary.uploader
 
         cloudinary.config(cloudinary_url=settings.cloudinary_url)
-        _cloudinary_configured = True
+        _mirror = True
     except Exception as e:
         logger.warning("Failed to configure Cloudinary: %s", e)
 
 
 def save(source: BinaryIO, suffix: str) -> str:
-    """Store a file locally (so ML can read it fast) and mirror to Cloudinary if enabled."""
+    """Store a file locally (the models and the image endpoints read it from there) and mirror it if enabled."""
     settings.upload_dir.mkdir(parents=True, exist_ok=True)
     key = f"{uuid.uuid4().hex}{suffix}"
     local_path = settings.upload_dir / key
@@ -31,16 +31,16 @@ def save(source: BinaryIO, suffix: str) -> str:
     with open(local_path, "wb") as target:
         shutil.copyfileobj(source, target)
 
-    # Mirror to Cloudinary if active
-    if _cloudinary_configured and settings.storage_backend == "cloudinary":
+    if _mirror:
         try:
-            import cloudinary.uploader
-
             cloudinary.uploader.upload(
                 str(local_path),
                 public_id=Path(key).stem,
                 folder="sarcoscan",
-                resource_type="auto",
+                resource_type="image",
+                # "authenticated" keeps the X-ray off any public URL: it opens only with a URL signed by
+                # our API secret. The default type, "upload", would make every X-ray public.
+                type="authenticated",
             )
         except Exception as e:
             logger.error("Cloudinary upload failed: %s", e)
@@ -53,20 +53,3 @@ def path(key: str) -> Path:
     if Path(key).name != key:
         raise ValueError("Not a storage key")
     return settings.upload_dir / key
-
-
-def get_url(key: str) -> str | None:
-    """Returns Cloudinary URL if configured, else None (served via local endpoint)."""
-    if _cloudinary_configured and settings.storage_backend == "cloudinary":
-        try:
-            import cloudinary.utils
-
-            url, _ = cloudinary.utils.cloudinary_url(
-                f"sarcoscan/{Path(key).stem}",
-                resource_type="image",
-                secure=True,
-            )
-            return url
-        except Exception:
-            return None
-    return None

@@ -11,6 +11,8 @@ import torchvision
 from PIL import Image
 from torchvision import transforms
 
+from . import muscle
+
 MODELS = Path(__file__).parent / "models"
 MODEL_VERSION = "osteo-densenet121-0.1+kl-densenet121-0.1"
 
@@ -53,6 +55,22 @@ _osteo, _osteo_classes = _load("osteoporosis_best.pt")
 _kl, _kl_classes = _load("arthritis_best.pt")
 
 
+def _soft_tissue(image_path: str) -> dict:
+    """Soft-tissue ratios and the overlay from ml/muscle.py. Empty when the image cannot be measured:
+    the classifiers' answers must not be lost because a ruler could not be placed."""
+    source = Path(image_path)
+    overlay = source.with_name(f"{source.stem}_overlay.png")
+    try:
+        measured = muscle.measure(source, overlay_path=overlay)
+    except Exception:  # an image-processing estimate; never let it fail the whole analysis
+        return {}
+    if not measured["valid"]:
+        overlay.unlink(missing_ok=True)  # an overlay of a failed measurement would mislead
+        return {}
+    keys = ("thigh_soft_to_bone", "calf_soft_to_bone", "soft_to_plateau", "soft_area_ratio")
+    return {**{key: measured[key] for key in keys}, "overlay_path": str(overlay)}
+
+
 def analyze(image_path: str, age: int, sex: str, bmi: float) -> dict:
     """age, sex, and bmi are accepted but unused: both models look at the image only."""
     # ponytail: 8-bit PNG and JPG only, which is all the upload endpoint accepts. The training loader
@@ -70,5 +88,6 @@ def analyze(image_path: str, age: int, sex: str, bmi: float) -> dict:
         "osteoporosis_prob": float(osteo[_osteo_classes.index("Osteoporosis")]),
         "osteoporosis_tier": _TIER[_osteo_classes[int(osteo.argmax())]],
         "kl_grade": int(_kl_classes[int(kl.argmax())].removeprefix("KL")),
-        # Not built yet: muscle ratios, low_muscle, overlay, Grad-CAM.
+        **_soft_tissue(image_path),
+        # Not built yet: Grad-CAM. low_muscle is deliberately not returned: no cutoff for the ratios exists.
     }
