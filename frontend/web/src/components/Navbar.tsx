@@ -45,12 +45,12 @@ export function Navbar() {
           {/* Logo & Brand */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <img
-              src="/logo.png"
+              src="/logo-mark.png"
               alt="SarcoScan Logo"
-              className="h-9 w-auto object-contain rounded-lg"
+              className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
             />
-            <span className="font-bold text-xl tracking-tight text-slate-900">
-              Sarco<span className="text-sky-600">Scan</span>
+            <span className="font-extrabold text-xl tracking-tight text-[#07396b]">
+              Sarco<span className="text-[#02a49c]">Scan</span>
             </span>
           </Link>
 

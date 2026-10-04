@@ -66,11 +66,13 @@ export function Footer() {
         <div className="md:col-span-1 space-y-4">
           <div className="flex items-center gap-3">
             <img
-              src="/logo.png"
+              src="/logo-mark.png"
               alt="SarcoScan Logo"
-              className="h-9 w-auto object-contain rounded-lg"
+              className="h-9 w-auto object-contain"
             />
-            <span className="font-bold text-xl tracking-tight text-white">SarcoScan</span>
+            <span className="font-extrabold text-xl tracking-tight text-white">
+              Sarco<span className="text-[#02a49c]">Scan</span>
+            </span>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">
             SarcoScan combines routine knee AP X-rays with a 10-second handgrip test to flag sarcopenia & osteoporosis risk on-premise without DEXA or CT scans.
