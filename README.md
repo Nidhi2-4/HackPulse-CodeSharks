@@ -1,5 +1,6 @@
 # SarcoScan
 
+<<<<<<< HEAD
 **Team CodeSharks · HackPulse**
 
 An on-premise AI screening tool that combines a routine knee AP X-ray with a 10-second handgrip test to flag sarcopenia and osteoporosis risk, with no DEXA or CT needed.
@@ -131,3 +132,57 @@ Patient X-rays, DICOM files, generated reports, `.env` files, keys and model wei
 ## Disclaimer
 
 SarcoScan is a hackathon prototype for research and demonstration. It is not a medical device and must not be used for clinical decisions.
+=======
+An on-premise AI screening tool that combines a routine knee AP X-ray with a 10-second handgrip test to flag sarcopenia and osteoporosis risk, with no DEXA or CT needed. Built by team CodeSharks for HackPulse.
+
+Status on 2026-10-04: the backend is written and passes its tests. The web app is being built. No model is connected yet. Progress is tracked in [docs/PLAN.md](docs/PLAN.md).
+
+Full spec: [docs/Documentation - SarcoScan (2).pdf](docs/Documentation%20-%20SarcoScan%20%282%29.pdf)
+
+## Start here
+
+| You are | Read |
+|---|---|
+| New to the project | [Architecture](docs/ARCHITECTURE.md), then [Plan](docs/PLAN.md) |
+| Anish (backend) | [backend/README.md](backend/README.md), [API](docs/API.md), [Database](docs/DATABASE.md), [Security](docs/SECURITY.md) |
+| Pravesh (models) | [ml/README.md](ml/README.md), [ML](docs/ML.md) |
+| Nidhi (UI, mobile, desktop) | [Frontend](docs/FRONTEND.md), [desktop/README.md](desktop/README.md), [mobile/README.md](mobile/README.md) |
+| Soham (pitch) | [Pitch](docs/PITCH.md) |
+
+## Layout
+
+```
+.
+├── backend/           Anish     FastAPI app, PostgreSQL models, security
+│   └── uploads/                 X-rays at runtime, not committed
+├── ml/                Pravesh   datasets, training, models, inference
+│   ├── data/                    Kaggle datasets, contents not committed
+│   ├── notebooks/               training notebooks and scripts
+│   └── models/                  final models the backend loads
+├── web/               Nidhi     Next.js UI, the only UI codebase
+├── mobile/            Nidhi     notes now, Capacitor shell later
+├── desktop/           Nidhi     notes now, Tauri shell later
+└── docs/              everyone  spec, design docs, plan, pitch
+```
+
+`web/` is not in the repo yet. The command that creates it needs the folder to be missing or empty; it is in [docs/FRONTEND.md](docs/FRONTEND.md).
+
+## Documentation
+
+| File | Answers |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the parts fit, how web, mobile, and desktop share one UI, what is cut from the spec and why |
+| [docs/PLAN.md](docs/PLAN.md) | Who does what, in which order, and what is done |
+| [docs/API.md](docs/API.md) | Which endpoints exist, who may call them, their status |
+| [docs/DATABASE.md](docs/DATABASE.md) | Tables and columns |
+| [docs/SECURITY.md](docs/SECURITY.md) | Login, tokens, roles, uploads, audit log, and the checklist |
+| [docs/ML.md](docs/ML.md) | Datasets, models, checks, results, and the hand-off to the backend |
+| [docs/FRONTEND.md](docs/FRONTEND.md) | Creating the web app, screens, login on the client, PWA, shells |
+| [docs/PITCH.md](docs/PITCH.md) | Slide outline, demo script, and what the deck may claim |
+
+Each doc has one owner and a "Last updated" date at the top. When a change makes a doc wrong, fix the doc in the same commit.
+
+## Before you commit
+
+Never commit `.env` files, datasets, zip files, real patient X-rays, or training checkpoints. Only final models go in `ml/models/`, and GitHub rejects any file over 100 MB. Team rules are in [docs/PLAN.md](docs/PLAN.md) under "Working together".
+>>>>>>> 3cdcd58 (chore: sync root docs and gitignore)
