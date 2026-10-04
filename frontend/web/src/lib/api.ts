@@ -68,6 +68,12 @@ export const api = {
       headers: body === undefined ? undefined : { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     }).then((r) => r.json() as Promise<T>),
+  patch: <T>(path: string, body: unknown) =>
+    request(path, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then((r) => r.json() as Promise<T>),
   upload: <T>(path: string, file: File) => {
     const form = new FormData();
     form.append("file", file);

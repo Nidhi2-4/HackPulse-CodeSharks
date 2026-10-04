@@ -28,6 +28,22 @@ class UserOut(BaseModel):
     role: Role
 
 
+class UserIn(BaseModel):
+    name: str = Field(min_length=2, max_length=120)
+    email: str = Field(min_length=5, max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    role: Role
+    password: str = Field(min_length=10, max_length=200)
+
+
+class UserAdminOut(UserOut):
+    is_active: bool
+    last_login_at: datetime | None
+
+
+class UserActiveIn(BaseModel):
+    is_active: bool
+
+
 class PatientIn(BaseModel):
     mrn: str = Field(min_length=1, max_length=40)
     name: str = Field(min_length=1, max_length=120)

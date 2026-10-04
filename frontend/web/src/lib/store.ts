@@ -64,6 +64,8 @@ export type Screening = {
   reviewedBy?: string;
   finalized: boolean;
 };
+/** A staff account as the admin sees it. */
+export type StaffUser = { id: string; name: string; email: string; role: Role; is_active: boolean; last_login_at: string | null };
 export type Audit = { at: string; user: string; action: string; record: string; ip: string };
 type State = {
   ready: boolean;
@@ -71,6 +73,7 @@ type State = {
   patients: Patient[];
   screenings: Screening[];
   audit: Audit[];
+  staff: StaffUser[];
   modelConnected: boolean | null;
 };
 
@@ -235,7 +238,7 @@ function toScreening(r: ApiResult): Screening {
 
 // Everything shown comes from the backend and is kept in memory only. Nothing about a patient is
 // written to browser storage.
-const EMPTY: State = { ready: false, user: null, patients: [], screenings: [], audit: [], modelConnected: null };
+const EMPTY: State = { ready: false, user: null, patients: [], screenings: [], audit: [], staff: [], modelConnected: null };
 let state: State = EMPTY;
 let started = false;
 const subs = new Set<() => void>();
@@ -248,11 +251,12 @@ function set(next: Partial<State>) {
 /** Fetch everything the pages show. Called after login and after every change. */
 export async function reload(): Promise<void> {
   const user = await api.get<User>("/auth/me");
-  const [patients, results, health, audit] = await Promise.all([
+  const [patients, results, health, audit, staff] = await Promise.all([
     api.get<ApiPatient[]>("/patients"),
     api.get<ApiResult[]>("/visits"),
     api.get<{ model_connected: boolean }>("/health"),
     user.role === "admin" ? api.get<ApiAudit[]>("/audit-logs") : Promise.resolve([]),
+    user.role === "admin" ? api.get<StaffUser[]>("/users") : Promise.resolve([]),
   ]);
   set({
     ready: true,
@@ -261,6 +265,7 @@ export async function reload(): Promise<void> {
     // A visit that was started but never analysed has no result to show yet.
     screenings: results.filter((r) => r.sarcopenia_stage !== null).map(toScreening),
     modelConnected: health.model_connected,
+    staff,
     audit: audit.map((a) => ({
       at: a.created_at,
       user: a.user_id.slice(0, 8),
@@ -350,3 +355,14 @@ export const useStore = () =>
     () => state,
     () => EMPTY,
   );
+
+/** Admin only. The backend refuses anyone else. */
+export async function createStaff(input: { name: string; email: string; role: Role; password: string }): Promise<void> {
+  await api.post("/users", input);
+  await reload();
+}
+
+export async function setStaffActive(id: string, isActive: boolean): Promise<void> {
+  await api.patch(`/users/${id}`, { is_active: isActive });
+  await reload();
+}

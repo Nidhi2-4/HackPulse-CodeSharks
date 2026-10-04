@@ -265,3 +265,26 @@ def test_client_ip_trusts_only_the_local_proxy():
     assert client_ip(request("127.0.0.1", "9.9.9.9, 10.0.0.7")) == "10.0.0.7"  # last entry: the one our proxy added
     assert client_ip(request("203.0.113.5", "1.2.3.4")) == "203.0.113.5"  # a direct caller cannot pick its address
     assert client_ip(request("127.0.0.1", "")) == "127.0.0.1"
+
+
+def test_only_admin_manages_users(client):
+    new = {"name": "New Nurse", "email": "Nurse@Test.local", "role": "technician", "password": "a-long-password"}
+    assert client.post("/api/v1/users", json=new, headers=login(client, "doctor")).status_code == 403
+    assert client.get("/api/v1/users", headers=login(client, "technician")).status_code == 403
+    assert client.post("/api/v1/users", json=new).status_code == 401  # no public sign-up
+
+    admin = login(client, "admin")
+    assert client.post("/api/v1/users", json={**new, "password": "short"}, headers=admin).status_code == 422
+    created = client.post("/api/v1/users", json=new, headers=admin)
+    assert created.status_code == 201 and created.json()["email"] == "nurse@test.local"
+    assert "password" not in created.text
+    assert client.post("/api/v1/users", json=new, headers=admin).status_code == 409
+
+    credentials = {"email": "nurse@test.local", "password": "a-long-password"}
+    assert client.post(LOGIN, json=credentials).status_code == 200
+    user_id = created.json()["id"]
+    assert client.patch(f"/api/v1/users/{user_id}", json={"is_active": False}, headers=admin).status_code == 200
+    assert client.post(LOGIN, json=credentials).status_code == 401  # switched off
+
+    me = next(u for u in client.get("/api/v1/users", headers=admin).json() if u["role"] == "admin")
+    assert client.patch(f"/api/v1/users/{me['id']}", json={"is_active": False}, headers=admin).status_code == 409

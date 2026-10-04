@@ -81,6 +81,9 @@ A browser `<img>` tag cannot send the `Authorization` header. The UI fetches the
 |---|---|---|---|---|
 | GET | `/audit-logs` | Audit trail, newest first. | A | done |
 | GET | `/health` | Says the API is up and whether an ML model is connected. | anyone | done |
+| GET | `/users` | List staff accounts. | A | done |
+| POST | `/users` | Create a staff account (name, email, role, password of 10 or more characters). There is no public sign-up. | A | done |
+| PATCH | `/users/{id}` | Switch an account on or off (`is_active`). Switching off ends that person's sessions. An admin cannot switch off their own account. | A | done |
 | GET, HEAD | `/ping` | For uptime monitors: answers `{"status":"ok"}` without touching the database or the models. | anyone | done |
 | POST, GET, PATCH, DELETE | `/users` | Manage users. `python -m backend.seed` creates the first admin, doctor, and technician. | A | later |
 | GET | `/stats/overview` | Dashboard numbers. | D, A | later |
