@@ -7,59 +7,6 @@ import { ActivityIcon, PhoneIcon, MailIcon, ShieldCheckIcon, AlertTriangleIcon }
 export function Footer() {
   return (
     <footer className="bg-slate-900 text-slate-300 mt-auto border-t border-slate-800">
-      {/* Top Banner: Emergency & Contact Grid */}
-      <div className="bg-sky-950/60 border-b border-sky-900/60 py-8 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-900/80 border border-sky-900/50">
-            <div className="p-3 rounded-xl bg-sky-600 text-white shadow-sm">
-              <PhoneIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-sky-400">Clinical Trial Helpline</h4>
-              <a
-                href="tel:+18005557272"
-                className="text-base font-bold text-white hover:text-sky-300 transition-colors block"
-              >
-                +1 (800) 555-7272
-              </a>
-              <span className="text-xs text-slate-400">Toll-free 24/7 Clinical Support</span>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-900/80 border border-sky-900/50">
-            <div className="p-3 rounded-xl bg-sky-800 text-white shadow-sm">
-              <PhoneIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-sky-400">Hospital Deployment Desk</h4>
-              <a
-                href="tel:+918023456789"
-                className="text-base font-bold text-white hover:text-sky-300 transition-colors block"
-              >
-                +91 (80) 2345-6789
-              </a>
-              <span className="text-xs text-slate-400">Tier-2 & Tier-3 Pilot Inquiries</span>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-900/80 border border-sky-900/50">
-            <div className="p-3 rounded-xl bg-blue-600 text-white shadow-sm">
-              <MailIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-sky-400">Direct Support Email</h4>
-              <a
-                href="mailto:support@sarcoscan.ai"
-                className="text-base font-bold text-white hover:text-sky-300 transition-colors block"
-              >
-                support@sarcoscan.ai
-              </a>
-              <span className="text-xs text-slate-400">Inquiries, PACS setup & integrations</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Footer Links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Col 1: About & Info */}
@@ -88,18 +35,18 @@ export function Footer() {
           <h4 className="text-sm font-semibold uppercase tracking-wider text-white">Platform</h4>
           <ul className="space-y-2 text-xs text-slate-400">
             <li>
+              <Link href="/demo" className="text-sky-400 font-semibold hover:text-white transition-colors">
+                Interactive AI Demo
+              </Link>
+            </li>
+            <li>
               <Link href="/" className="hover:text-white transition-colors">
-                Screening Suite
+                Overview &amp; Panels
               </Link>
             </li>
             <li>
               <Link href="/about" className="hover:text-white transition-colors">
                 About SarcoScan
-              </Link>
-            </li>
-            <li>
-              <Link href="/#clinical-workflow" className="hover:text-white transition-colors">
-                Clinical Workflow
               </Link>
             </li>
             <li>
