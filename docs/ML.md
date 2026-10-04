@@ -206,6 +206,17 @@ Figures are copied from Pravesh's training reports (`models/models/*_report.json
 
 How the app uses them: the tier is the predicted class (Normal = low, Osteopenia = moderate, Osteoporosis = high) and `osteoporosis_prob` is the probability of the Osteoporosis class. CPU time on Anish's laptop: about 170 ms per image for both models, about 10 s to load at startup.
 
+### Tabular models (received 2026-10-04, not connected)
+
+Pravesh also shared three models that use numbers, not the image. They are in `models/models/` locally and in the Drive folder. None is used by the app, and none has a row above because no report file came with them.
+
+| File | Predicts | Inputs |
+|---|---|---|
+| `sarcopenia_ann.keras`, `sarcopenia_ANN_1.joblib`, `sarcopenia_model.joblib` | Low muscle mass (yes or no) | age, sex, race/ethnicity code, height, weight, BMI, waist, arm circumference, best grip, combined grip |
+| `osteoporosis_XGBoost_1.joblib` | Bone loss (yes or no) | the same, plus about 25 questionnaire answers (diabetes, fractures, smoking, steroid use, and others) |
+
+What is known only from the files: the ROC plot is titled "5-fold CV" and shows AUC 0.954 for the muscle model; the feature names look like a US health survey (NHANES). Open before use: which dataset and how "low muscle mass" was defined; the app does not collect waist, arm circumference, ethnicity, or the questionnaire; the ethnicity codes are US categories; BMI and weight dominate the explanation plot, so check that the label was not itself computed from weight or BMI.
+
 ## Limits to state in the pitch
 
 - No sarcopenia-labelled data: the stage is rule-based and the muscle proxy is unvalidated.

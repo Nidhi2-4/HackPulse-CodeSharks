@@ -2,7 +2,7 @@
 
 Owner: Nidhi. Last updated: 2026-10-04.
 
-Status: the web app in `frontend/web/` is built and talks to the backend. It builds cleanly, and the whole screening flow was run through it against a test backend. Not yet clicked through in a browser by an automated check; the PDF's X-ray image and the browser's file save were not exercised.
+Status: the web app in `frontend/web/` is built and talks to the backend. It builds cleanly, and the whole screening flow was run through it against a test backend. Anish clicked through it in a browser on 2026-10-04, including the PDF download with the X-ray. No automated browser check exists.
 
 One UI serves all three platforms. Phones and desktops open the same web app. See "Web, mobile, and desktop" in `ARCHITECTURE.md` for the reasoning.
 
@@ -35,7 +35,7 @@ frontend/web/
 └── src/lib/
     ├── api.ts                calls to the backend, login token, refresh
     ├── store.ts              the data every page reads, and the actions that change it
-    └── pdfReport.ts          the one-page PDF report
+    └── pdfReport.ts          the PDF report: findings on page 1, the X-ray on page 2
 ```
 
 ### Data flow
@@ -60,6 +60,12 @@ In the UI, always call relative paths through `api.ts`. Never hard-code a host o
 3. On a 401, `api.ts` calls refresh once and repeats the request. Calls made at the same moment share one refresh, because the backend treats a second use of an old refresh token as theft.
 4. After a page reload the token in memory is gone, so the store calls refresh at start.
 5. Menu items a role cannot use are hidden. That is for convenience; the backend still refuses the call.
+
+## The PDF report
+
+`pdfReport.ts` builds it in the browser from what the backend stored. Page 1 has the letterhead (hospital on the left, SarcoScan on the right), the patient box, the two results, the measured values next to their cutoffs, the suggested action, the doctor's note, and who screened and reviewed. Page 2 has the X-ray.
+
+The hospital name comes from `NEXT_PUBLIC_HOSPITAL_NAME` in `.env.local` (optional second line: `NEXT_PUBLIC_HOSPITAL_ADDRESS`). Without it the report says "Demo Hospital". The hospital mark is a plain cross drawn by the code, not a real logo.
 
 ## The screening flow
 
