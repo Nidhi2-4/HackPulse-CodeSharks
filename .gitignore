@@ -1,0 +1,95 @@
+# secrets / env (only the template is committed)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.p8
+*.jks
+*.keystore
+infra/nginx/certs/
+
+# patient data (PHI) - never commit X-rays, DICOM or generated reports
+*.dcm
+*.dicom
+*.nii
+*.nii.gz
+uploads/
+reports/
+ml/data/
+
+# model weights and training outputs
+*.onnx
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.joblib
+*.h5
+ml/models/
+ml/runs/
+mlruns/
+wandb/
+
+# database / storage / docker volumes
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.sql.gz
+pgdata/
+minio-data/
+orthanc-db/
+redis-data/
+infra/**/data/
+
+# node
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+.expo/
+web-build/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.apk
+*.aab
+*.ipa
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+celerybeat-schedule*
+
+# firmware (PlatformIO / Arduino)
+.pio/
+firmware/**/build/
+
+# logs / OS / editor
+*.log
+logs/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# claude local settings
+.claude/settings.local.json
