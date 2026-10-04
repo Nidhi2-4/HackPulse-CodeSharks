@@ -20,6 +20,10 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "react-native-ble-plx",
+      "expo-secure-store"
+    ]
   }
 }

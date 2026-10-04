@@ -148,10 +148,6 @@ export default function HomePage() {
       <section className="relative overflow-hidden pt-8 pb-12 px-4 sm:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#dae3ec] border border-[#bac7b6] text-xs font-semibold text-[#1e293b] shadow-sm">
-              <SparklesIcon className="w-4 h-4 text-[#8c9e88]" />
-              <span>Team CodeSharks · HackPulse Clinical AI</span>
-            </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#1e293b] leading-[1.1]">
               Knee X-Ray + Handgrip AI Screening for Sarcopenia
@@ -180,21 +176,6 @@ export default function HomePage() {
               </a>
             </div>
 
-            {/* Trust & Architecture Badges */}
-            <div className="pt-4 flex flex-wrap items-center gap-4 text-xs font-medium text-[#475569]">
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-[#e8e8e8]">
-                <ShieldCheckIcon className="w-4 h-4 text-emerald-600" />
-                100% On-Premise LAN (No Cloud)
-              </span>
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-[#e8e8e8]">
-                <ActivityIcon className="w-4 h-4 text-[#8c9e88]" />
-                AWGS 2019 Cutoff Standard
-              </span>
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-[#e8e8e8]">
-                <ServerIcon className="w-4 h-4 text-[#475569]" />
-                &lt;5s CPU Inference
-              </span>
-            </div>
           </div>
 
           {/* Hero Visual Card / Quick Overview */}
@@ -724,7 +705,7 @@ export default function HomePage() {
               Bring SarcoScan to Your Clinical Facility
             </h2>
             <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
-              Connect with Team CodeSharks for on-premise installation guides, BLE dynamometer hardware schematics, and clinical validation protocols.
+              Connect with our clinical research team for on-premise installation guides, BLE dynamometer hardware schematics, and clinical validation protocols.
             </p>
           </div>
 

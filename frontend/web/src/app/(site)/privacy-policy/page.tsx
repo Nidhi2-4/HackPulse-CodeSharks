@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
           SarcoScan Privacy Policy & Clinical Data Governance
         </h1>
         <p className="text-sm sm:text-base text-[#475569] leading-relaxed">
-          Effective Date: October 2026 · SarcoScan by Team CodeSharks (HackPulse)
+          Effective Date: October 2026 · SarcoScan Clinical Platform
         </p>
       </div>
 

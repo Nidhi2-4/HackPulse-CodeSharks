@@ -4,7 +4,7 @@ import { AlertTriangleIcon, FileTextIcon, PhoneIcon, MailIcon, ShieldCheckIcon }
 
 export const metadata = {
   title: "Terms and Conditions · SarcoScan AI Screening Platform",
-  description: "Terms and conditions of use for SarcoScan research and pilot clinical screening software by Team CodeSharks.",
+  description: "Terms and conditions of use for SarcoScan research and pilot clinical screening software.",
 };
 
 export default function TermsAndConditionsPage() {
@@ -20,7 +20,7 @@ export default function TermsAndConditionsPage() {
           SarcoScan Terms and Conditions
         </h1>
         <p className="text-sm sm:text-base text-[#475569] leading-relaxed">
-          Last Updated: October 2026 · Team CodeSharks (HackPulse)
+          Last Updated: October 2026 · SarcoScan Research Consortium
         </p>
       </div>
 
@@ -31,7 +31,7 @@ export default function TermsAndConditionsPage() {
           <h2>Mandatory Clinical Research Disclaimer</h2>
         </div>
         <p className="text-sm text-[#1e293b] leading-relaxed font-medium">
-          SarcoScan is a software prototype developed for hackathon demonstration and clinical research validation. It is <strong>NOT</strong> an FDA/CE-cleared diagnostic medical device and must <strong>NOT</strong> be used as a standalone diagnostic determination or treatment prescription.
+          SarcoScan is a software prototype developed for clinical research demonstration and validation. It is <strong>NOT</strong> an FDA/CE-cleared diagnostic medical device and must <strong>NOT</strong> be used as a standalone diagnostic determination or treatment prescription.
         </p>
         <p className="text-xs text-[#475569] leading-relaxed">
           All algorithmic risk tiers (Sarcopenia staging and Osteoporosis probability) are intended solely as auxiliary screening prompts to assist licensed healthcare professionals in triage and referral decisions.
@@ -66,7 +66,7 @@ export default function TermsAndConditionsPage() {
             3. Limitation of Liability
           </h2>
           <p>
-            Team CodeSharks, HackPulse organizers, and affiliated developers assume no liability for patient treatment decisions, misdiagnoses, delayed interventions, or inaccuracies arising from distorted radiograph inputs or patient dynamometer non-compliance.
+            The developers and affiliated clinical researchers assume no liability for patient treatment decisions, misdiagnoses, delayed interventions, or inaccuracies arising from distorted radiograph inputs or patient dynamometer non-compliance.
           </p>
         </section>
 
@@ -75,7 +75,7 @@ export default function TermsAndConditionsPage() {
             4. Open Research & Intellectual Property
           </h2>
           <p>
-            The underlying deep learning fusion architecture, soft-tissue-to-bone ratio extraction algorithms, and UX design belong to Team CodeSharks under open academic research licensing for participating pilot hospitals.
+            The underlying deep learning fusion architecture, soft-tissue-to-bone ratio extraction algorithms, and UX design are provided under open academic research licensing for participating pilot hospitals.
           </p>
         </section>
 

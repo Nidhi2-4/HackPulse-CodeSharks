@@ -140,3 +140,10 @@ Thumbs.db
 # --- 9. AI Assistant Local Metadata ---
 .gemini/
 .claude/settings.local.json
+
+# --- 10. Exceptions: app source folders that share a name with ignored data dirs ---
+# (e.g. the Next.js route src/app/reports/). Real patient files never live under src/.
+!frontend/*/src/**/reports/
+!frontend/*/src/**/uploads/
+!frontend/*/src/**/data/
+!frontend/*/src/**/storage/

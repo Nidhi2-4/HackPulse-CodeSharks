@@ -51,7 +51,6 @@ export function Navbar() {
               <span className="font-bold text-xl tracking-tight text-[#1e293b] flex items-center gap-1">
                 Sarco<span className="text-[#8c9e88]">Scan</span>
               </span>
-              <p className="text-[10px] uppercase tracking-wider text-[#475569] font-medium">Team CodeSharks</p>
             </div>
           </Link>
 
@@ -93,10 +92,10 @@ export function Navbar() {
               <span>Call Helpline</span>
             </a>
             <Link
-              href="#screening-demo"
+              href="/login"
               className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#8c9e88] hover:bg-[#7b8c77] shadow-sm flex items-center gap-1.5 transition-all"
             >
-              <span>Launch Demo</span>
+              <span>Staff Login</span>
               <span aria-hidden="true">&rarr;</span>
             </Link>
           </div>

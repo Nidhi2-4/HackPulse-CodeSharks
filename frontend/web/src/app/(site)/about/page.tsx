@@ -15,7 +15,7 @@ import {
 } from "@/components/Icons";
 
 export const metadata = {
-  title: "About SarcoScan · Team CodeSharks (HackPulse)",
+  title: "About SarcoScan · On-Premise AI Clinical Screening",
   description: "Learn about SarcoScan, the on-premise AI screening tool combining routine knee AP X-rays with handgrip strength for early sarcopenia and osteoporosis triage.",
 };
 
@@ -24,10 +24,6 @@ export default function AboutPage() {
     <div className="py-12 px-4 sm:px-8 max-w-6xl mx-auto space-y-16">
       {/* Hero Section */}
       <div className="relative overflow-hidden rounded-3xl bg-white border border-[#dae3ec] shadow-sm p-8 sm:p-14 space-y-6">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#dae3ec] text-[#1e293b] text-xs font-semibold">
-          <SparklesIcon className="w-4 h-4 text-[#8c9e88]" />
-          <span>Team CodeSharks · HackPulse 2026</span>
-        </div>
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#1e293b] leading-tight">
           Democratizing Musculoskeletal & Sarcopenia Screening
         </h1>
@@ -178,15 +174,15 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Team CodeSharks Contact & Direct Links */}
+      {/* Clinical Research Team Contact & Direct Links */}
       <div className="bg-white rounded-3xl border border-[#dae3ec] p-8 sm:p-12 space-y-6 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-2xl bg-[#dae3ec] text-[#1e293b]">
             <UsersIcon className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-[#1e293b]">Connect with Team CodeSharks</h2>
-            <p className="text-xs text-[#475569]">HackPulse 2026 Developers & Medical Technology Researchers</p>
+            <h2 className="text-2xl font-bold text-[#1e293b]">Connect with Clinical Research Team</h2>
+            <p className="text-xs text-[#475569]">AI Developers & Medical Technology Researchers</p>
           </div>
         </div>
 

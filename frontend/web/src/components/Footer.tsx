@@ -71,10 +71,10 @@ export function Footer() {
             <span className="font-bold text-xl tracking-tight text-[#1e293b]">SarcoScan</span>
           </div>
           <p className="text-xs text-[#475569] leading-relaxed">
-            SarcoScan by <strong>Team CodeSharks</strong> combines routine knee AP X-rays with a 10-second handgrip test to flag sarcopenia & osteoporosis risk on-premise without DEXA or CT scans.
+            SarcoScan combines routine knee AP X-rays with a 10-second handgrip test to flag sarcopenia & osteoporosis risk on-premise without DEXA or CT scans.
           </p>
           <div className="flex items-center gap-2 text-xs text-[#475569]">
-            <span className="px-2 py-0.5 rounded bg-[#d1d9ca] font-medium text-[#1e293b]">HackPulse 2026</span>
+            <span className="px-2 py-0.5 rounded bg-[#d1d9ca] font-medium text-[#1e293b]">Clinical AI</span>
             <span>· On-Premise LAN</span>
           </div>
         </div>
@@ -86,6 +86,11 @@ export function Footer() {
             <li>
               <Link href="/" className="hover:text-[#1e293b] transition-colors">
                 Screening Suite
+              </Link>
+            </li>
+            <li>
+              <Link href="/login" className="hover:text-[#1e293b] transition-colors">
+                Staff Login
               </Link>
             </li>
             <li>
@@ -155,7 +160,7 @@ export function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-[#dae3ec] py-4 px-4 sm:px-8 text-center text-xs text-[#64748b] bg-[#eeeeee]">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© {new Date().getFullYear()} SarcoScan (Team CodeSharks). All rights reserved.</p>
+          <p>© {new Date().getFullYear()} SarcoScan. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link href="/privacy-policy" className="hover:underline">Privacy</Link>
             <span>·</span>

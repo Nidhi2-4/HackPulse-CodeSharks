@@ -50,7 +50,7 @@ export default function NotFound() {
               </span>
               <ArrowRightIcon className="w-4 h-4 text-gray-400 group-hover:translate-x-1 group-hover:text-[#8c9e88] transition-all" />
             </div>
-            <p className="text-xs text-[#64748b]">Learn about Team CodeSharks and the clinical mission</p>
+            <p className="text-xs text-[#64748b]">Learn about SarcoScan and the clinical mission</p>
           </Link>
         </div>
 
