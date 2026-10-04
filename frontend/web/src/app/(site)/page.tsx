@@ -131,7 +131,6 @@ export default function HomePage() {
   const [doctorOverride, setDoctorOverride] = useState(false);
   const [overrideStage, setOverrideStage] = useState("Probable Sarcopenia");
   const [doctorNotes, setDoctorNotes] = useState("");
-  const [showExportSuccess, setShowExportSuccess] = useState(false);
 
   // Dynamic Peak Grip Calculation
   const peakCalculatedGrip =
@@ -802,25 +801,15 @@ export default function HomePage() {
                     </div>
 
                     <div className="flex justify-end gap-3 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowExportSuccess(true);
-                          setTimeout(() => setShowExportSuccess(false), 3000);
-                        }}
+                      <Link
+                        href="/login"
                         className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs transition-colors shadow-sm shadow-sky-600/20 flex items-center gap-1.5"
                       >
                         <FileTextIcon className="w-4 h-4" />
-                        <span>Export Clinical Screening PDF</span>
-                      </button>
+                        <span>Sign in to run a real screening and download the PDF</span>
+                      </Link>
                     </div>
 
-                    {showExportSuccess && (
-                      <div className="p-3 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-200">
-                        <CheckCircleIcon className="w-4 h-4 text-sky-600" />
-                        <span>Clinical report successfully compiled and saved to local on-premise storage!</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}

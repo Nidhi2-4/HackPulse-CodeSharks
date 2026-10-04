@@ -1,4 +1,7 @@
-"""Settings come from environment variables. A .env file in the repo root is loaded if present."""
+"""Settings come from environment variables. A .env file in the repo root is loaded if present.
+
+Set ENV_FILE to load a different file, for example ENV_FILE=.env.prod.
+"""
 import base64
 import os
 from dataclasses import dataclass
@@ -6,7 +9,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(os.environ.get("ENV_FILE", ".env"))
 
 
 def _env(name: str) -> str:

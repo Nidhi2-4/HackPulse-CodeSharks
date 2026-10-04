@@ -61,6 +61,13 @@ uvicorn backend.main:app --reload
 
 The generated API page is at http://localhost:8000/docs. Use "Authorize" there with the access token from `/auth/login`.
 
+Two settings files, both ignored by git:
+
+- `.env` is for local work. Everything stays on this machine: a SQLite file (`sarcoscan.db`) and `backend/uploads/`.
+- `.env.prod` holds the hosted database and storage credentials. To run against it, set `ENV_FILE` first: `$env:ENV_FILE=".env.prod"` in PowerShell, then the same commands. Close that terminal afterwards so the next run is local again.
+
+The two files have different encryption keys, so a patient saved in one database cannot be read with the other file.
+
 Seed logins: `admin@sarcoscan.local`, `doctor@sarcoscan.local`, `technician@sarcoscan.local`.
 
 ## Tests
