@@ -2,7 +2,7 @@
 
 Owner: Anish. Last updated: 2026-10-04.
 
-Status: files for Render are in the repo (`render.yaml`). Not deployed yet; nothing below has been run against Render.
+Status: files for Render are in the repo (`render.yaml`). First deploys failed on settings (see "Render settings"). No successful deploy has been confirmed yet.
 
 ## What runs where
 
@@ -22,9 +22,30 @@ Status: files for Render are in the repo (`render.yaml`). Not deployed yet; noth
 5. For `sarcoscan-web`, set `BACKEND_URL` to the API's address (no slash at the end), then deploy. It is read at build time: change it, redeploy.
 6. Open the web app and sign in with a seed account. If the database is new, run `python -m backend.seed` once with `ENV_FILE=.env.prod` from your own machine.
 
+## Render settings (when the service was made by hand, not from the blueprint)
+
+| Setting | API service | Web service |
+|---|---|---|
+| Root Directory | empty | `frontend/web` |
+| Build Command | `pip install -r requirements.txt` | `npm ci && npm run build` |
+| Start Command | `python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT` | `npm start` |
+
+The API must run from the repo root. With Root Directory set to `backend`, the start fails with `No module named 'backend'`.
+
 ## Limits to know before the demo
 
-- **Memory.** The free plan gives 512 MB. Torch plus the four models need more, so `FETCH_MODELS` starts at `0`: the app runs, the stage comes from the rules, and it says "AI model: not connected". Setting it to `1` downloads the models at build time; expect the service to be killed for memory on the free plan. A paid instance with 2 GB, or Hugging Face Spaces, runs them.
+- **Memory.** The free plan gives 512 MB. The four model files are in the repo and load at start. All four need more than 512 MB, and the service is then killed while starting (the log ends with "No open ports detected" or "Out of memory"). Set `SARCOSCAN_MODELS` on the API service and redeploy, trying in this order until it stays up: `xray,tabular` (everything), `xray` (osteoporosis, KL grade, overlay), `tabular` (muscle mass and bone loss from measurements), `none` (rules only). The app says which part is not connected. A 2 GB instance runs everything.
+
+  Measured on Anish's Windows laptop on 2026-10-04 (process memory after one screening; Linux will differ somewhat):
+
+  | `SARCOSCAN_MODELS` | Peak memory |
+  |---|---|
+  | `xray,tabular` | 669 MB |
+  | `xray` | 490 MB |
+  | `tabular` | 278 MB |
+  | `none` | 125 MB |
+
+  So all four do not fit in 512 MB, `xray` is at the edge, and `tabular` fits with room to spare.
 - **Sleep.** A free service sleeps after 15 minutes without a request. The next request waits about a minute.
 - **Files.** Uploaded X-rays and overlays live on the service's disk and disappear on restart. Results stay in the database; the image then shows "could not be loaded".
 - **Login rate limit.** Behind Render the API sees Render's proxy address, not the browser's, so the 5-a-minute limit is shared by everyone. Fine for a demo.

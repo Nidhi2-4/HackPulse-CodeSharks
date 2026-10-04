@@ -7,20 +7,18 @@ services:
     name: sarcoscan-api
     runtime: python
     plan: free
-    buildCommand: pip install -r backend/requirements.txt && python -m ml.fetch_models
-    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/v1/health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
-      - key: PYTHONPATH
-        value: .
       - key: COOKIE_SECURE
         value: "true"
-      # "1" downloads the four model files at build time. The free plan has 512 MB of memory and
-      # the models need more, so start with "0": the app runs and shows "AI model: not connected".
-      - key: FETCH_MODELS
-        value: "0"
+      # The free plan has 512 MB of memory; all four models need more. Try in this order until the
+      # service stays up: "xray,tabular", "xray", "tabular", "none". See docs/DEPLOY.md.
+      - key: SARCOSCAN_MODELS
+        value: xray
       - key: STORAGE_BACKEND
         value: cloudinary
       # Copy these from .env.prod. They are typed into Render, never committed.

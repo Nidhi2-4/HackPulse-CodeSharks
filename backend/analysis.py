@@ -1,10 +1,16 @@
 """Cutoffs, the sarcopenia stage rule, and the call into the ML code. See docs/ML.md."""
 import logging
+import os
 from pathlib import Path
 
 from .models import Stage
 
 log = logging.getLogger(__name__)
+
+# Which model groups to load: "xray" (ml/predict.py) and "tabular" (ml/tabular.py). Together they
+# need more than 512 MB, so a small server can switch one or both off: SARCOSCAN_MODELS=xray,
+# =tabular, or =none. The app then says what is not connected and still runs.
+_ENABLED = {name.strip() for name in os.environ.get("SARCOSCAN_MODELS", "xray,tabular").split(",")}
 
 # AWGS 2019.
 GRIP_CUTOFF_KG = {"male": 28.0, "female": 18.0}
@@ -34,6 +40,8 @@ def sarcopenia_stage(
 def _model():
     """ml.predict.analyze, or None when it cannot load on this machine:
     torch is not installed, or the weight files are not in ml/models/ (they are not in git)."""
+    if "xray" not in _ENABLED:
+        return None
     try:
         from ml.predict import analyze
     except (ImportError, FileNotFoundError) as error:
@@ -61,7 +69,7 @@ def run_tabular_models(
     Returns {} when they cannot load on this machine or no grip reading exists.
     Anything not measured is passed as None and the model fills it in."""
     grips = [g for g in (best_left, best_right) if g is not None]
-    if not grips:
+    if not grips or "tabular" not in _ENABLED:
         return {}
     try:
         from ml import tabular
@@ -101,6 +109,8 @@ def model_connected() -> bool:
 
 def tabular_connected() -> bool:
     """True when the two body-measurement models load on this machine."""
+    if "tabular" not in _ENABLED:
+        return False
     try:
         from ml import tabular  # noqa: F401
     except (ImportError, FileNotFoundError) as error:
