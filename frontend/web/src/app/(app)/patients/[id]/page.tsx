@@ -16,7 +16,7 @@ function GripTrend({ values, cutoff }: { values: number[]; cutoff: number }) {
       <text x="2" y={y(cutoff) - 2} fontSize="6" fill="#b91c1c">
         cutoff {cutoff} kg
       </text>
-      <polyline points={values.map((v, i) => `${x(i)},${y(v)}`).join(" ")} fill="none" stroke="#5f7a5a" strokeWidth="1.5" />
+      <polyline points={values.map((v, i) => `${x(i)},${y(v)}`).join(" ")} fill="none" stroke="#0284c7" strokeWidth="1.5" />
       {values.map((v, i) => (
         <text key={i} x={x(i)} y={y(v) - 3} fontSize="6" textAnchor="middle">
           {v}

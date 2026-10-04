@@ -101,7 +101,7 @@ Without a model a screening still runs and shows everything that is real: the st
 
 A design canvas with 14 screens: https://claude.ai/artifact/QD73sqhXZV5EaatPSguTXa
 
-It is private to Anish until he shares it from the page's Share menu. The web app was built with its own look (sage green) before the canvas existed; the canvas is a reference for layout ideas, the risk-level bars, and the phone screens. All patients and values on it are made up.
+It is private to Anish until he shares it from the page's Share menu. The web app has its own look (blue and white; the palette is the `:root` block in `src/app/globals.css`, and the clinic app's shared classes `.card`, `.btn`, `.input`, `.table` sit at the end of that file); the canvas is a reference for layout ideas, the risk-level bars, and the phone screens. All patients and values on it are made up.
 
 ## The spec document and the deck
 

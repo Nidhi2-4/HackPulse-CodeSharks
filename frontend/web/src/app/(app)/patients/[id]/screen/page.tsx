@@ -86,7 +86,7 @@ export default function ScreeningWizard() {
           <li
             key={s}
             aria-current={i === step ? "step" : undefined}
-            className="rounded-full bg-white px-3 py-1 text-[#64748b] aria-[current]:bg-[#5f7a5a] aria-[current]:text-white"
+            className="rounded-full bg-white px-3 py-1 text-[#64748b] aria-[current]:bg-[#0284c7] aria-[current]:text-white"
           >
             {i + 1}. {s}
           </li>

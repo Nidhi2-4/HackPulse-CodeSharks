@@ -29,7 +29,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-1 flex-col md:flex-row">
-      <nav className="no-print flex shrink-0 gap-1 overflow-x-auto border-[#d4dcd6] bg-white p-3 max-md:border-b md:w-52 md:flex-col md:border-r">
+      <nav className="no-print flex shrink-0 gap-1 overflow-x-auto border-[#e2e8f0] bg-white p-3 max-md:border-b md:w-52 md:flex-col md:border-r">
         <Link href="/dashboard" className="px-3 py-2 text-lg font-bold">
           SarcoScan
         </Link>
@@ -38,7 +38,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             key={href}
             href={href}
             aria-current={path.startsWith(href) ? "page" : undefined}
-            className="rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap hover:bg-[#d1d9ca]/50 aria-[current]:bg-[#d1d9ca]"
+            className="rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap hover:bg-[#e0f2fe]/50 aria-[current]:bg-[#e0f2fe]"
           >
             {label}
           </Link>

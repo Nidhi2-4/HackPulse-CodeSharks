@@ -3,9 +3,9 @@ import { Skeleton, PatientReportSkeleton } from "@/components/ui/Skeleton";
 
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-[#eeeeee] p-6 sm:p-10 space-y-8 max-w-6xl mx-auto">
+    <div className="min-h-screen bg-[#f8fafc] p-6 sm:p-10 space-y-8 max-w-6xl mx-auto">
       {/* Top Banner Skeleton */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white rounded-2xl border border-[#d1d9ca] shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-white rounded-2xl border border-[#e0f2fe] shadow-sm">
         <div className="flex items-center gap-4">
           <Skeleton variant="circular" className="w-14 h-14" />
           <div className="space-y-2">
@@ -23,7 +23,7 @@ export default function Loading() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <PatientReportSkeleton />
-          <div className="p-6 bg-white rounded-2xl border border-[#e8e8e8] space-y-4">
+          <div className="p-6 bg-white rounded-2xl border border-[#f1f5f9] space-y-4">
             <Skeleton variant="text" className="w-48 h-5" />
             <div className="grid grid-cols-2 gap-4">
               <Skeleton variant="rectangular" className="h-28 rounded-xl" />
@@ -33,7 +33,7 @@ export default function Loading() {
         </div>
 
         <div className="space-y-6">
-          <div className="p-6 bg-white rounded-2xl border border-[#d1d9ca] space-y-4">
+          <div className="p-6 bg-white rounded-2xl border border-[#e0f2fe] space-y-4">
             <Skeleton variant="text" className="w-36 h-5" />
             <Skeleton variant="rectangular" className="w-full h-48 rounded-xl" />
             <Skeleton variant="text" className="w-full h-3" />
@@ -41,7 +41,7 @@ export default function Loading() {
             <Skeleton variant="rectangular" className="w-full h-11 rounded-xl" />
           </div>
 
-          <div className="p-6 bg-white rounded-2xl border border-[#e8e8e8] space-y-4">
+          <div className="p-6 bg-white rounded-2xl border border-[#f1f5f9] space-y-4">
             <Skeleton variant="text" className="w-40 h-5" />
             <div className="space-y-2">
               <Skeleton variant="rectangular" className="w-full h-8 rounded" />

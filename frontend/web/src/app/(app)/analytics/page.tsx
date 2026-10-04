@@ -9,7 +9,7 @@ function Bars({ title, rows, total }: { title: string; rows: [string, number][];
       {rows.map(([label, n]) => (
         <label key={label} className="grid grid-cols-[9rem_1fr_2rem] items-center gap-3 text-sm">
           {label}
-          <progress value={n} max={total || 1} className="h-2 w-full accent-[#5f7a5a]" />
+          <progress value={n} max={total || 1} className="h-2 w-full accent-[#0284c7]" />
           {n}
         </label>
       ))}
