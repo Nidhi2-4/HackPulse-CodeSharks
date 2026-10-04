@@ -41,6 +41,21 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="SarcoScan API", lifespan=lifespan)
+
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://sarcoscan-web.onrender.com",
+    ],
+    allow_origin_regex=r"https?://.*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(auth.router)
 app.include_router(patients.router)
 app.include_router(visits.router)
