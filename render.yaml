@@ -13,6 +13,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: PYTHONPATH
+        value: .
       - key: COOKIE_SECURE
         value: "true"
       # "1" downloads the four model files at build time. The free plan has 512 MB of memory and
@@ -20,7 +22,7 @@ services:
       - key: FETCH_MODELS
         value: "0"
       - key: STORAGE_BACKEND
-        value: local
+        value: cloudinary
       # Copy these from .env.prod. They are typed into Render, never committed.
       - key: DATABASE_URL
         sync: false
