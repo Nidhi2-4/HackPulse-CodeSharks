@@ -49,7 +49,7 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <div className="bg-slate-50/50">
-      
+
       {/* 1. HERO SECTION (Full-Screen Clean Above-The-Fold) */}
       <section className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center px-4 sm:px-8 max-w-5xl mx-auto text-center py-12">
         <div className="space-y-6 max-w-4xl mx-auto">
@@ -100,7 +100,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
+
             {/* Panel 1: Doctor & Clinician */}
             <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-lg shadow-sky-900/5 hover:border-sky-300 transition-all flex flex-col justify-between group">
               <div className="space-y-5">
@@ -346,78 +346,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* 6. ON-PREMISE ARCHITECTURE & PRIVACY */}
-        <section className="px-4 sm:px-8 max-w-7xl mx-auto">
-          <div className="p-8 sm:p-12 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-slate-100 pb-6">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-sky-600 block mb-1">
-                  Enterprise Security &amp; Compliance
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                  100% On-Premise Clinical Architecture
-                </h2>
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
-                <ShieldCheckIcon className="w-4 h-4" />
-                <span>Zero Cloud Patient Data Transit</span>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-600">
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                <ServerIcon className="w-6 h-6 text-sky-600" />
-                <h4 className="font-bold text-sm text-slate-900">Local Docker Deployment</h4>
-                <p>Deploy in 5 minutes on standard hospital hardware with Docker Compose and MinIO object storage.</p>
-              </div>
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                <ShieldCheckIcon className="w-6 h-6 text-sky-600" />
-                <h4 className="font-bold text-sm text-slate-900">HIPAA &amp; GDPR Compliant</h4>
-                <p>DICOM headers are de-identified locally before neural network feature extraction.</p>
-              </div>
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                <ActivityIcon className="w-6 h-6 text-sky-600" />
-                <h4 className="font-bold text-sm text-slate-900">LAN Hardware Integration</h4>
-                <p>Seamlessly connects to Bluetooth LE digital dynamometers and PACS DICOM worklists.</p>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        {/* 7. CONTACT & HOSPITAL SUPPORT */}
-        <section className="px-4 sm:px-8 max-w-7xl mx-auto">
-          <div className="p-8 sm:p-10 rounded-3xl bg-white border border-slate-200 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="space-y-2 max-w-xl">
-              <span className="text-xs font-bold uppercase tracking-wider text-sky-600">
-                Hospital Support &amp; Pilot Deployments
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                Bring SarcoScan to Your Clinical Facility
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Connect with our clinical research team for on-premise installation guides, BLE dynamometer hardware schematics, and clinical validation protocols.
-              </p>
-            </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <a
-                href="tel:+18005557272"
-                className="px-5 py-3 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs transition-all shadow-md shadow-sky-600/20 flex items-center justify-center gap-2"
-              >
-                <PhoneIcon className="w-4 h-4" />
-                <span>Call Helpline: +1 (800) 555-7272</span>
-              </a>
-
-              <a
-                href="mailto:support@sarcoscan.ai"
-                className="px-5 py-3 rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-800 font-bold text-xs transition-all flex items-center justify-center gap-2 border border-sky-200"
-              >
-                <MailIcon className="w-4 h-4" />
-                <span>Email: support@sarcoscan.ai</span>
-              </a>
-            </div>
-          </div>
-        </section>
 
       </div>
     </div>
