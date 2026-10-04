@@ -239,6 +239,7 @@ def test_screening_flow_from_visit_to_review(client, monkeypatch):
     assert [(v["visit_id"], v["performed_by_name"], v["reviewed_by_name"]) for v in visits] == [
         (visit["id"], "technician", "doctor")
     ]
+    assert client.head("/api/v1/ping").status_code == 200 and client.get("/api/v1/ping").json() == {"status": "ok"}
     assert client.get("/api/v1/health").json() == {
         "status": "ok", "model_connected": False, "tabular_connected": False,
     }

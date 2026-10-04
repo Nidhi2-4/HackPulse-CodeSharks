@@ -2,7 +2,7 @@
 
 Owner: Anish. Last updated: 2026-10-04.
 
-Status: files for Render are in the repo (`render.yaml`). First deploys failed on settings (see "Render settings"). No successful deploy has been confirmed yet.
+Status: files for Render are in the repo (`render.yaml`). The API is live at https://hackpulse-codesharks.onrender.com. On 2026-10-04 one full screening was run against it: all four models answered, with the same result as on the laptop. The analysis took 45 seconds there (about 0.3 on the laptop).
 
 ## What runs where
 
@@ -46,7 +46,7 @@ The API must run from the repo root. With Root Directory set to `backend`, the s
   | `none` | 125 MB |
 
   So all four do not fit in 512 MB, `xray` is at the edge, and `tabular` fits with room to spare.
-- **Sleep.** A free service sleeps after 15 minutes without a request. The next request waits about a minute.
+- **Sleep.** A free service sleeps after 15 minutes without a request. The next request waits about a minute. An uptime monitor (UptimeRobot, every 5 minutes) pointed at `/api/v1/ping` keeps it awake.
 - **Files.** Uploaded X-rays and overlays live on the service's disk and disappear on restart. Results stay in the database; the image then shows "could not be loaded".
 - **Login rate limit.** Behind Render the API sees Render's proxy address, not the browser's, so the 5-a-minute limit is shared by everyone. Fine for a demo.
 - **Upload size.** Requests pass through the web service to the API. Keep X-rays to a few MB.

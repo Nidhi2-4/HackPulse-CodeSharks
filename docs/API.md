@@ -81,6 +81,7 @@ A browser `<img>` tag cannot send the `Authorization` header. The UI fetches the
 |---|---|---|---|---|
 | GET | `/audit-logs` | Audit trail, newest first. | A | done |
 | GET | `/health` | Says the API is up and whether an ML model is connected. | anyone | done |
+| GET, HEAD | `/ping` | For uptime monitors: answers `{"status":"ok"}` without touching the database or the models. | anyone | done |
 | POST, GET, PATCH, DELETE | `/users` | Manage users. `python -m backend.seed` creates the first admin, doctor, and technician. | A | later |
 | GET | `/stats/overview` | Dashboard numbers. | D, A | later |
 | GET, POST | `/devices` | Grip devices. | A | dropped (Bluetooth removed in spec v2) |
@@ -89,7 +90,7 @@ A browser `<img>` tag cannot send the `Authorization` header. The UI fetches the
 ## Conventions
 
 - Requests and responses are JSON, except the X-ray upload (multipart) and file downloads.
-- Every call except login, refresh, logout, and health carries `Authorization: Bearer <access token>`.
+- Every call except login, refresh, logout, health, and ping carries `Authorization: Bearer <access token>`.
 - Errors use FastAPI's default error body and these status codes:
 
 | Code | Meaning |
