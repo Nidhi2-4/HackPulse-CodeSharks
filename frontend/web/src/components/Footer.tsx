@@ -65,9 +65,11 @@ export function Footer() {
         {/* Col 1: About & Info */}
         <div className="md:col-span-1 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-sky-600 flex items-center justify-center text-white">
-              <ActivityIcon className="w-5 h-5" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="SarcoScan Logo"
+              className="h-9 w-auto object-contain rounded-lg"
+            />
             <span className="font-bold text-xl tracking-tight text-white">SarcoScan</span>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">

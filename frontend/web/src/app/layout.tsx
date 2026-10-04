@@ -25,6 +25,11 @@ export const metadata: Metadata = {
     "AI Medical Imaging",
     "Clinical AI",
   ],
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -37,7 +42,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#eeeeee] text-[#1e293b] font-sans selection:bg-[#bac7b6] selection:text-[#1e293b]">
+      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-sky-200 selection:text-sky-900">
         {children}
       </body>
     </html>

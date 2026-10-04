@@ -43,15 +43,15 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center text-white shadow-md shadow-sky-600/20 group-hover:bg-sky-700 transition-all">
-              <ActivityIcon className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="font-bold text-xl tracking-tight text-slate-900 flex items-center gap-1">
-                Sarco<span className="text-sky-600">Scan</span>
-              </span>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <img
+              src="/logo.png"
+              alt="SarcoScan Logo"
+              className="h-9 w-auto object-contain rounded-lg"
+            />
+            <span className="font-bold text-xl tracking-tight text-slate-900">
+              Sarco<span className="text-sky-600">Scan</span>
+            </span>
           </Link>
 
           {/* Desktop Nav Links */}
