@@ -71,7 +71,7 @@ export function Footer() {
               className="h-9 w-auto object-contain"
             />
             <span className="font-extrabold text-xl tracking-tight text-white">
-              Sarco<span className="text-[#02a49c]">Scan</span>
+              Sarco<span className="text-sky-400">Scan</span>
             </span>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">

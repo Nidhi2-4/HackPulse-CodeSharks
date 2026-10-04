@@ -49,8 +49,8 @@ export function Navbar() {
               alt="SarcoScan Logo"
               className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
             />
-            <span className="font-extrabold text-xl tracking-tight text-[#07396b]">
-              Sarco<span className="text-[#02a49c]">Scan</span>
+            <span className="font-extrabold text-xl tracking-tight text-slate-900">
+              Sarco<span className="text-sky-600">Scan</span>
             </span>
           </Link>
 
