@@ -86,7 +86,6 @@ export default function HomePage() {
   const [grip, setGrip] = useState<number>(selectedCase.gripStrength);
   const [bmi, setBmi] = useState<number>(selectedCase.bmi);
   const [isLoading, setIsLoading] = useState(false);
-  const [simulatedSlowNetwork, setSimulatedSlowNetwork] = useState(false);
   const [hasInferred, setHasInferred] = useState(true);
   const [doctorOverride, setDoctorOverride] = useState(false);
   const [overrideNote, setOverrideNote] = useState("");
@@ -99,25 +98,15 @@ export default function HomePage() {
     setBmi(caseItem.bmi);
     setDoctorOverride(false);
     setOverrideNote("");
-
-    if (simulatedSlowNetwork) {
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        setHasInferred(true);
-      }, 1400);
-    } else {
-      setHasInferred(true);
-    }
+    setHasInferred(true);
   };
 
   const handleRunInference = () => {
     setIsLoading(true);
-    const delay = simulatedSlowNetwork ? 1600 : 400;
     setTimeout(() => {
       setIsLoading(false);
       setHasInferred(true);
-    }, delay);
+    }, 300);
   };
 
   // Dynamic calculations based on AWGS 2019 cutoff
@@ -259,22 +248,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Skeleton Loading Feature Toggle */}
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#eeeeee] border border-[#d1d9ca]">
-              <div className="text-right">
-                <span className="text-xs font-bold text-[#1e293b] block">Simulate Slow Network</span>
-                <span className="text-[10px] text-[#64748b]">Demonstrates Skeleton Loading</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={simulatedSlowNetwork}
-                  onChange={(e) => setSimulatedSlowNetwork(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-[#dae3ec] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[#bac7b6] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#8c9e88]"></div>
-              </label>
-            </div>
           </div>
 
           {/* Sample Radiograph Cases Selector */}
