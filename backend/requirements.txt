@@ -12,3 +12,7 @@ pillow>=10
 # tests
 pytest>=8
 httpx2>=2
+
+# Needed by ml/predict.py. CPU builds: add --index-url https://download.pytorch.org/whl/cpu
+torch==2.7.1
+torchvision==0.22.1

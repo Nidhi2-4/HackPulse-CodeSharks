@@ -20,6 +20,7 @@ async def lifespan(app: FastAPI):
             connection.execute(
                 text("ALTER TABLE patients ALTER COLUMN phone DROP NOT NULL, ALTER COLUMN phone_hash DROP NOT NULL")
             )
+    model_connected()  # load the models now (about 10 s) so the first screening does not wait for it
     yield
 
 

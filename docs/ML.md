@@ -2,14 +2,14 @@
 
 Owner: Pravesh. Last updated: 2026-10-04.
 
-Status: datasets are downloaded and training has started on Pravesh's machine. No model, notebook, or metric is in the repo yet. Pravesh: fill in the Results table and correct anything below that does not match what you are doing.
+Status: two DenseNet121 classifiers (osteoporosis, KL grade) are trained and connected to the app through `ml/predict.py`. The training script is not in the repo, so the inference preprocessing is unconfirmed, and neither model has an external test or an overlap check. Muscle ratios, overlay, and Grad-CAM are not built.
 
 ## What the product needs from ML
 
 | Output | In the spec | Approach | Training data | Status |
 |---|---|---|---|---|
-| Osteoporosis risk: probability and tier (low, moderate, high) | Must-have 10 | Image classifier (fine-tuned CNN) on the knee X-ray | `osteoporosis/main`, tested on `osteoporosis/external` | in progress |
-| KL osteoarthritis grade, 0 to 4 | Should-have, bonus only | Image classifier (fine-tuned CNN) | `kl_grade/main`, tested on `external` and `cgmh` | in progress |
+| Osteoporosis risk: probability and tier (low, moderate, high) | Must-have 10 | Image classifier (fine-tuned CNN) on the knee X-ray | `osteoporosis/main`, tested on `osteoporosis/external` | done (internal test only) |
+| KL osteoarthritis grade, 0 to 4 | Should-have, bonus only | Image classifier (fine-tuned CNN) | `kl_grade/main`, tested on `external` and `cgmh` | done (internal test only) |
 | Muscle proxy: four soft-tissue-to-bone ratios | Must-have 5 and 6 | Segmentation mask, then pixel counting | No labelled masks exist | planned |
 | Sarcopenia stage (none, possible, probable, severe) | Must-have 9 | AWGS-style rules for now | No public labelled data found | planned |
 | X-ray quality check | Must-have 4 | Simple rules first | none needed | planned |
@@ -166,7 +166,7 @@ Three honest limits:
 
 ## Handing models to the backend
 
-- Put the final model files in `ml/models/`. They are committed, so keep each under 100 MB (GitHub's limit). Checkpoints from training stay out of the repo.
+- Put the final model files in `ml/models/`: `osteoporosis_best.pt` and `arthritis_best.pt`. Git ignores `*.pt`, so they are not in the repo; each teammate copies them in by hand from the team's Drive folder: https://drive.google.com/drive/folders/1Zxi-auctfcBx3Jhcx89zlIls5CgT20VN Without them (or without torch) the app runs and shows "AI model: not connected". The `*_last.pt` files are training checkpoints and are not needed.
 - Write the inference code in `ml/predict.py`. The backend already calls it (`backend/analysis.py`), so the name and arguments are fixed:
 
   ```python
@@ -197,11 +197,14 @@ Three honest limits:
 
 ## Results
 
-Nothing has been measured yet. Add one row per trained model.
+Figures are copied from Pravesh's training reports (`models/models/*_report.json`). They were not re-measured.
 
 | Model | Date | Trained on | Internal test | External test | Notes |
 |---|---|---|---|---|---|
-| | | | | | |
+| Osteoporosis, DenseNet121, 3 classes (`osteoporosis_best.pt`) | 2026-10-04 | 544 train, 69 validation images; started from the KL model's weights | 68 images: accuracy 0.765, macro-F1 0.765, AUC (one-vs-rest) 0.892. Normal vs bone loss: sensitivity 0.915 (43/47), specificity 0.762 (16/21) | not run | Small test set, so wide error margins. Overlap check not recorded. Which dataset the 681 images came from is not recorded. |
+| KL grade, DenseNet121, 5 classes (`arthritis_best.pt`) | 2026-10-04 | 8800 train, 1100 validation images | 1100 images: accuracy 0.735, macro-F1 0.752, quadratic kappa 0.862, within one grade 0.955. KL1 recall 0.545 | not run | Random split; images of the same patient may be on both sides. |
+
+How the app uses them: the tier is the predicted class (Normal = low, Osteopenia = moderate, Osteoporosis = high) and `osteoporosis_prob` is the probability of the Osteoporosis class. CPU time on Anish's laptop: about 170 ms per image for both models, about 10 s to load at startup.
 
 ## Limits to state in the pitch
 

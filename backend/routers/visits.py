@@ -198,7 +198,7 @@ def save_grip(
 ):
     visit = _get(db, Visit, visit_id, "visit")
     if not body.left and not body.right:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Enter at least one grip reading")
+        raise HTTPException(422, "Enter at least one grip reading")
     # Sending the readings again replaces the earlier ones for this visit.
     db.execute(delete(GripMeasurement).where(GripMeasurement.visit_id == visit.id))
     for hand, values in ((Hand.left, body.left), (Hand.right, body.right)):
@@ -344,7 +344,7 @@ def review(
         raise HTTPException(status.HTTP_409_CONFLICT, "This visit has no analysis to review yet")
     final_stage = analysis.sarcopenia_stage if body.agrees_with_ai else body.final_stage
     if final_stage is None:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Choose the final stage")
+        raise HTTPException(422, "Choose the final stage")
     # A new row each time: the system's result and every doctor decision are all kept.
     doctor_review = DoctorReview(
         visit_id=visit.id,

@@ -34,6 +34,19 @@ export default function NewPatient() {
   return (
     <>
       <h1 className="h1">New patient</h1>
+      <button
+        type="button"
+        className="btn-ghost"
+        onClick={() => {
+          // Demo helper: a made-up patient. The record number is random so it can be used repeatedly.
+          const form = document.querySelector("form")!;
+          const sample = { name: "Sample Patient", mrn: `DEMO-${Date.now() % 100000}`, age: "68", sex: "F", heightCm: "154", weightKg: "52" };
+          for (const [key, value] of Object.entries(sample)) (form.elements.namedItem(key) as HTMLInputElement).value = value;
+          form.querySelector<HTMLInputElement>("input[type=checkbox]")!.checked = true;
+        }}
+      >
+        Fill sample values
+      </button>
       <form onSubmit={submit} className="card grid max-w-2xl gap-4 sm:grid-cols-2">
         <label className="label">
           Full name

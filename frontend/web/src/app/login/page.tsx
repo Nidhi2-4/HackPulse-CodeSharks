@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signIn, useStore } from "@/lib/store";
 
+// Local demo only: read from .env.local, which is never committed. Empty in any build without it.
+const DEMO_PASSWORDS: Record<string, string> = JSON.parse(process.env.NEXT_PUBLIC_DEMO_LOGINS || "{}");
+
 export default function Login() {
   const router = useRouter();
   const { ready, user } = useStore();
@@ -51,6 +54,25 @@ export default function Login() {
           {busy ? "Signing in..." : "Sign in"}
         </button>
       </form>
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#64748b]">
+        Seed accounts:
+        {["technician", "doctor", "admin"].map((role) => (
+          <button
+            key={role}
+            type="button"
+            className="btn-ghost px-2 py-1 text-xs capitalize"
+            onClick={(e) => {
+              const form = e.currentTarget.closest("main")!.querySelector("form")!;
+              (form.elements.namedItem("email") as HTMLInputElement).value = `${role}@sarcoscan.local`;
+              const password = form.elements.namedItem("password") as HTMLInputElement;
+              password.value = DEMO_PASSWORDS[role] ?? "";
+              password.focus();
+            }}
+          >
+            {role}
+          </button>
+        ))}
+      </div>
       <p className="mt-4 text-xs text-[#64748b]">Accounts are created by the hospital admin.</p>
       <Link href="/" className="mt-4 block text-center text-sm underline">
         Back to home

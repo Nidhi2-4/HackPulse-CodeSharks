@@ -21,7 +21,7 @@ def register_patient(
     audit: Audit = Depends(),
 ):
     if not body.consent_given:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "The patient's consent is required")
+        raise HTTPException(422, "The patient's consent is required")
     if db.scalar(select(Patient.id).where(Patient.mrn == body.mrn)):
         raise HTTPException(status.HTTP_409_CONFLICT, "A patient with this MRN already exists")
     patient = Patient(

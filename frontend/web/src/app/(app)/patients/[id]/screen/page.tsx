@@ -44,6 +44,17 @@ export default function ScreeningWizard() {
     setPreview(picked ? URL.createObjectURL(picked) : "");
   }
 
+  /** Demo helper: made-up inputs and the sample image from public/samples, ready to run. */
+  async function fillSample() {
+    setClin({ sarcF: "5", chairStand: "13.5", calfCm: "31" });
+    setGrip({ right: ["15.5", "16.2", "15.8"], left: ["14.1", "14.9", "14.4"] });
+    const blob = await (await fetch("/samples/sample_knee_left.jpg")).blob();
+    setFile(new File([blob], "sample_knee_left.jpg", { type: "image/jpeg" }));
+    setPreview(URL.createObjectURL(blob));
+    setProblem("");
+    setStep(2);
+  }
+
   /** The one explicit action: save the inputs, upload and check the X-ray, then run the analysis. */
   async function run(e: React.FormEvent) {
     e.preventDefault();
@@ -92,6 +103,11 @@ export default function ScreeningWizard() {
           </li>
         ))}
       </ol>
+      {step < 3 && (
+        <button type="button" className="btn-ghost" disabled={!!progress} onClick={fillSample}>
+          Fill sample values
+        </button>
+      )}
 
       {step === 0 && (
         <form onSubmit={next} className="card grid max-w-2xl gap-4 sm:grid-cols-3">
@@ -152,7 +168,7 @@ export default function ScreeningWizard() {
         <form onSubmit={run} className="card max-w-2xl space-y-4">
           <label className="label">
             Knee AP X-ray (JPG or PNG, up to 50 MB)
-            <input type="file" required accept=".jpg,.jpeg,.png,image/jpeg,image/png" className="input" onChange={pick} />
+            <input type="file" required={!file} accept=".jpg,.jpeg,.png,image/jpeg,image/png" className="input" onChange={pick} />
           </label>
           {/* eslint-disable-next-line @next/next/no-img-element -- local preview of the chosen file */}
           {preview && <img src={preview} alt="Chosen knee X-ray" className="max-h-72 rounded-lg bg-black" />}

@@ -17,8 +17,8 @@ ml/
 │       ├── external/      test only
 │       └── cgmh/          test only (hospital data, doctor-graded)
 ├── notebooks/             training notebooks and scripts
-├── models/                final models the backend loads. Committed. Under 100 MB each.
-└── predict.py             functions the backend imports (not written yet)
+├── models/                final models the backend loads. Not in git (*.pt is ignored): copy them in by hand.
+└── predict.py             functions the backend imports
 ```
 
 ## Rules

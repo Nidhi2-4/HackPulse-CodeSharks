@@ -1,8 +1,10 @@
 """Cutoffs, the sarcopenia stage rule, and the call into the ML code. See docs/ML.md."""
-import importlib.util
+import logging
 from pathlib import Path
 
 from .models import Stage
+
+log = logging.getLogger(__name__)
 
 # AWGS 2019.
 GRIP_CUTOFF_KG = {"male": 28.0, "female": 18.0}
@@ -29,20 +31,24 @@ def sarcopenia_stage(
     return Stage.severe if (low_grip and slow) else Stage.probable
 
 
-def model_connected() -> bool:
-    """True once ml/predict.py is in the repo."""
+def _model():
+    """ml.predict.analyze, or None when it cannot load on this machine:
+    torch is not installed, or the weight files are not in ml/models/ (they are not in git)."""
     try:
-        return importlib.util.find_spec("ml.predict") is not None
-    except ModuleNotFoundError:
-        return False
+        from ml.predict import analyze
+    except (ImportError, FileNotFoundError) as error:
+        log.warning("AI model not connected: %s", error)
+        return None
+    return analyze
+
+
+def model_connected() -> bool:
+    return _model() is not None
 
 
 def run_model(image_path: Path, age: int, sex: str, bmi: float) -> dict:
-    """Call ml/predict.py. Returns {} while that file is not in the repo yet."""
-    try:
-        from ml.predict import analyze
-    except ModuleNotFoundError as error:
-        if error.name in ("ml", "ml.predict"):
-            return {}
-        raise  # predict.py exists but one of its own imports is missing: that is a real error
+    """Call ml/predict.py. Returns {} when the model is not connected."""
+    analyze = _model()
+    if analyze is None:
+        return {}
     return analyze(image_path=str(image_path), age=age, sex=sex, bmi=bmi)

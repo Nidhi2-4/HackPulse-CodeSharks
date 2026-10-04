@@ -22,7 +22,7 @@ This is the task list. Tick a box when the thing works, not when it is started. 
 | M2 | Real pieces | Osteoporosis model, muscle ratios, sarcopenia rules, overlay, history graph, PDF report |
 | M3 | Ready to show | Security checklist done, PWA installs, demo data loaded, backup video recorded, deck final |
 
-M1 is reached: the flow runs through the web app, the API and the database, with no model connected. M0 is not: local commits have not been pushed.
+M1 is reached: the flow runs through the web app, the API and the database, and the osteoporosis and KL grade models are connected. Local commits are pushed to GitHub.
 
 M1 comes before making any single piece good. Joining the parts on the last day is how hackathon demos fail.
 
@@ -42,7 +42,7 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 - [x] Visit, clinical inputs, and grip endpoints
 - [x] X-ray upload with size, type, and name checks (PNG and JPG)
 - [x] X-ray and overlay served through authenticated endpoints
-- [x] Analyze endpoint calling `ml/predict.py`, and result endpoint. The model is not connected yet; see `API.md`.
+- [x] Analyze endpoint calling `ml/predict.py`, and result endpoint. Connected to the osteoporosis and KL grade models.
 - [x] History endpoint
 - [x] Doctor review endpoint
 - [x] PDF report (made in the web app)
@@ -58,7 +58,9 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 - [ ] Write in `ML.md` what is being trained and on which dataset
 - [ ] Overlap check between `main` and `external` for both tasks
 - [ ] Osteoporosis classifier with metrics on internal and external test sets
-- [ ] Final model in `ml/models/`, row added to Results in `ML.md`
+- [x] Final model in `ml/models/`, row added to Results in `ML.md` (internal test only)
+- [ ] Pravesh: confirm the preprocessing in `ml/predict.py` against the training script, and add the script to `ml/training/`
+- [ ] Pravesh: external test and overlap check for both models
 - [ ] `ml/predict.py` with a function the backend can call (M1, a placeholder is fine at first)
 - [ ] Muscle ratios with a threshold mask, and the overlay image
 - [ ] Sarcopenia stage rules

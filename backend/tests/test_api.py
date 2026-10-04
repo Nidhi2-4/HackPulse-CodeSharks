@@ -16,6 +16,9 @@ os.environ.update(
 )
 
 import io  # noqa: E402
+import sys  # noqa: E402
+
+sys.modules["ml.predict"] = None  # these tests check the API with no model, on any machine
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
