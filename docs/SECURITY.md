@@ -181,14 +181,14 @@ Say these openly if a judge asks. They are in the spec but not in the hackathon 
 | # | Item | Status |
 |---|---|---|
 | 1 | argon2 password hashing | done |
-| 2 | Login rate limit, 5 a minute per address | done. Kept in memory, so it counts per server process. |
+| 2 | Login rate limit, 5 a minute per address | done. Kept in memory, so it counts per server process. Counts per browser address, read from the proxy's `X-Forwarded-For` (trusted only from this machine). |
 | 3 | Access token, 15 minutes, memory only | done. The web app keeps it in a variable in `api.ts`, never in browser storage. |
 | 4 | Refresh token in HttpOnly cookie, hashed in database, rotated, reuse signs the user out everywhere | done |
 | 5 | UI and API on one origin, CORS closed | done. The web app forwards `/api` to the backend, and the backend has no CORS. |
 | 6 | Role dependency on every endpoint | done |
 | 7 | Upload size, type, and name checks | done for PNG and JPG |
 | 8 | X-rays served only through authenticated endpoints | done on local disk. See item 17. |
-| 9 | Audit log dependency | done. Behind the UI's proxy it records the proxy's address until uvicorn runs with `--proxy-headers`. |
+| 9 | Audit log dependency | done. Records the browser's address behind the UI's proxy (`client_ip` in `backend/security.py`). |
 | 10 | HTTPS on the demo URL | planned |
 | 11 | `.env.example` in the repo, `.env` ignored | done |
 | 12 | Encrypted disk on the demo server | planned |

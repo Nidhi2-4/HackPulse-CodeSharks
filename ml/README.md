@@ -16,7 +16,8 @@ ml/
 │       ├── main/          train and validate
 │       ├── external/      test only
 │       └── cgmh/          test only (hospital data, doctor-graded)
-├── notebooks/             training notebooks and scripts
+├── notebooks/             training notebooks
+├── training/              Pravesh's scripts: dataset cleaning, duplicate checks, splits, training
 ├── models/                final models the backend loads. Not in git (*.pt is ignored): copy them in by hand.
 └── predict.py             functions the backend imports
 ```

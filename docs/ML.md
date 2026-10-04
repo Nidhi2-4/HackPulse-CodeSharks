@@ -2,7 +2,7 @@
 
 Owner: Pravesh. Last updated: 2026-10-04.
 
-Status: two DenseNet121 classifiers (osteoporosis, KL grade) are trained and connected to the app through `ml/predict.py`. The training script is not in the repo, so the inference preprocessing is unconfirmed, and neither model has an external test or an overlap check. Muscle ratios, overlay, and Grad-CAM are not built.
+Status: two DenseNet121 classifiers (osteoporosis, KL grade) are trained and connected to the app through `ml/predict.py`. The training scripts are in `ml/training/` and `ml/predict.py` uses the same preprocessing (pad to square, 224 px, mirror-averaged). Neither model has an external test. The scripts include exact and near-duplicate checks and keep both knees of one image in the same split; the counts they found are not recorded here. Muscle ratios, overlay, and Grad-CAM are not built.
 
 ## What the product needs from ML
 
@@ -201,7 +201,7 @@ Figures are copied from Pravesh's training reports (`models/models/*_report.json
 
 | Model | Date | Trained on | Internal test | External test | Notes |
 |---|---|---|---|---|---|
-| Osteoporosis, DenseNet121, 3 classes (`osteoporosis_best.pt`) | 2026-10-04 | 544 train, 69 validation images; started from the KL model's weights | 68 images: accuracy 0.765, macro-F1 0.765, AUC (one-vs-rest) 0.892. Normal vs bone loss: sensitivity 0.915 (43/47), specificity 0.762 (16/21) | not run | Small test set, so wide error margins. Overlap check not recorded. Which dataset the 681 images came from is not recorded. |
+| Osteoporosis, DenseNet121, 3 classes (`osteoporosis_best.pt`) | 2026-10-04 | 544 train, 69 validation images; started from the KL model's weights | 68 images: accuracy 0.765, macro-F1 0.765, AUC (one-vs-rest) 0.892. Normal vs bone loss: sensitivity 0.915 (43/47), specificity 0.762 (16/21) | not run | Small test set, so wide error margins. Score uses mirror-averaging, as the app does. Duplicate checks exist in `ml/training/` but their counts are not recorded. Which Kaggle set the 681 images came from is not recorded. |
 | KL grade, DenseNet121, 5 classes (`arthritis_best.pt`) | 2026-10-04 | 8800 train, 1100 validation images | 1100 images: accuracy 0.735, macro-F1 0.752, quadratic kappa 0.862, within one grade 0.955. KL1 recall 0.545 | not run | Random split; images of the same patient may be on both sides. |
 
 How the app uses them: the tier is the predicted class (Normal = low, Osteopenia = moderate, Osteoporosis = high) and `osteoporosis_prob` is the probability of the Osteoporosis class. CPU time on Anish's laptop: about 170 ms per image for both models, about 10 s to load at startup.
@@ -215,7 +215,9 @@ Pravesh also shared three models that use numbers, not the image. They are in `m
 | `sarcopenia_ann.keras`, `sarcopenia_ANN_1.joblib`, `sarcopenia_model.joblib` | Low muscle mass (yes or no) | age, sex, race/ethnicity code, height, weight, BMI, waist, arm circumference, best grip, combined grip |
 | `osteoporosis_XGBoost_1.joblib` | Bone loss (yes or no) | the same, plus about 25 questionnaire answers (diabetes, fractures, smoking, steroid use, and others) |
 
-What is known only from the files: the ROC plot is titled "5-fold CV" and shows AUC 0.954 for the muscle model; the feature names look like a US health survey (NHANES). Open before use: which dataset and how "low muscle mass" was defined; the app does not collect waist, arm circumference, ethnicity, or the questionnaire; the ethnicity codes are US categories; BMI and weight dominate the explanation plot, so check that the label was not itself computed from weight or BMI.
+From `ml/training/build_nhanes_dataset.py`: the data is NHANES 2011 to 2014 (US survey). "Low muscle mass" is DXA appendicular lean mass divided by height squared, below 7.0 (men) or 5.4 (women), the AWGS 2019 cutoffs. Bone loss is a femoral-neck T-score below -1. DXA values are kept out of the inputs. The ROC plot is titled "5-fold CV" and shows AUC 0.954 for the muscle model; no report file came with it.
+
+Limits: whole-body DXA in these years covers ages 20 to 59 only, so the muscle model never saw the elderly patients this tool is for; the people are from the US, with US ethnicity codes; the label uses height, and weight and BMI are inputs, so part of the score is arithmetic; the app does not collect waist, arm circumference, ethnicity, or the questionnaire.
 
 ## Limits to state in the pitch
 

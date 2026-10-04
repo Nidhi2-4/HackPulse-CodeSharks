@@ -131,14 +131,22 @@ def revoke_refresh_token(db: Session, token: str) -> None:
     db.execute(update(RefreshToken).where(RefreshToken.token_hash == _token_hash(token)).values(revoked=True))
 
 
+def client_ip(request: Request) -> str:
+    """The caller's address. The web app's /api proxy runs on this machine and adds the browser's
+    address as the last X-Forwarded-For entry; only a connection from this machine is trusted to say so."""
+    host = request.client.host if request.client else ""
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if host in ("127.0.0.1", "::1") and forwarded:
+        return forwarded.split(",")[-1].strip()
+    return host
+
+
 class Audit:
     """Dependency that records who did what. Rows hold ids only, never patient names."""
 
     def __init__(self, request: Request, db: Session = Depends(get_db)):
         self.db = db
-        # ponytail: behind the web app's /api proxy this is the proxy's address.
-        # Run uvicorn with --proxy-headers and --forwarded-allow-ips to log the real client.
-        self.ip = request.client.host if request.client else ""
+        self.ip = client_ip(request)
 
     def log(self, user: User, action: str, entity_type: str, entity_id: uuid.UUID | None = None) -> None:
         self.db.add(
@@ -152,7 +160,7 @@ _login_attempts: dict[str, deque[float]] = defaultdict(deque)
 def limit_login(request: Request) -> None:
     """Dependency: at most 5 login attempts per minute from one address."""
     # ponytail: kept in memory, per process. Move to Redis if the API runs with more than one worker.
-    attempts = _login_attempts[request.client.host if request.client else ""]
+    attempts = _login_attempts[client_ip(request)]
     cutoff = time.monotonic() - 60
     while attempts and attempts[0] < cutoff:
         attempts.popleft()

@@ -59,7 +59,8 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 - [ ] Overlap check between `main` and `external` for both tasks
 - [ ] Osteoporosis classifier with metrics on internal and external test sets
 - [x] Final model in `ml/models/`, row added to Results in `ML.md` (internal test only)
-- [ ] Pravesh: confirm the preprocessing in `ml/predict.py` against the training script, and add the script to `ml/training/`
+- [x] Preprocessing in `ml/predict.py` matches the training scripts, now in `ml/training/`
+- [ ] Pravesh: train with stronger brightness augmentation; a 30% brighter copy of one image changed the tier
 - [ ] Pravesh: external test and overlap check for both models
 - [ ] `ml/predict.py` with a function the backend can call (M1, a placeholder is fine at first)
 - [ ] Muscle ratios with a threshold mask, and the overlay image

@@ -43,14 +43,16 @@ Name and phone are encrypted in the database (`SECURITY.md` section 8). Phone se
 | POST | `/visits/{id}/clinical-inputs` | SARC-F, chair stand, calf circumference. | T, D | done |
 | POST | `/visits/{id}/grip` | Up to three readings per hand. Marks the best per hand and compares with the cutoff. Sending again replaces the earlier readings. | T, D | done |
 | POST | `/visits/{id}/xray` | Upload the X-ray (multipart field `file`). PNG or JPG only for now. Runs the quality check. | T, D | done |
-| POST | `/visits/{id}/analyze` | Run the analysis and store the result. Needs an X-ray that passed the quality check. | T, D | done, model not connected |
+| POST | `/visits/{id}/analyze` | Run the analysis and store the result. Needs an X-ray that passed the quality check. | T, D | done |
 | GET | `/visits/{id}/result` | Inputs, cutoffs, stage, risk, and the doctor's review if there is one. | T, D, A | done |
 | POST | `/visits/{id}/review` | Doctor agrees or sets the final stage, with notes. | D | done |
 | GET | `/visits/{id}/status` | Poll analysis status. Only needed if analysis moves to a queue. | T, D, A | later |
 
 About "model not connected": `ml/predict.py` is not in the repo yet. Until it is, analyze stores the sarcopenia stage from the rule (grip and chair stand only) and leaves every image-based field empty. The result says `model_connected: false`. No value is invented.
 
-The quality check looks at size and shape only. Recognising a knee AP view and a cut-off soft-tissue edge needs the model.
+The quality check looks at size, shape, colour, and contrast. It rejects colour photos, logos, and blank images. A greyscale photo or an X-ray of another body part still passes; recognising a knee AP view needs a trained check.
+
+Patient ranges: age 18 to 120, height 120 to 220 cm, weight 25 to 250 kg.
 
 ## Files
 

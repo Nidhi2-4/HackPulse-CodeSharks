@@ -157,7 +157,7 @@ def test_audit_log_records_ids_not_names(client):
 
 def png(width=512, height=640):
     buffer = io.BytesIO()
-    Image.new("L", (width, height), 90).save(buffer, format="PNG")
+    Image.linear_gradient("L").resize((width, height)).save(buffer, format="PNG")  # grey with contrast, like an X-ray
     return buffer.getvalue()
 
 
@@ -190,6 +190,10 @@ def test_screening_flow_from_visit_to_review(client):
     assert upload(b"not an image at all").status_code == 415
     too_small = upload(png(100, 100))
     assert too_small.status_code == 201 and too_small.json()["qc_passed"] is False
+    for not_an_xray in (Image.new("L", (512, 640), 90), Image.new("RGB", (512, 640), (200, 30, 30))):  # blank, colour
+        buffer = io.BytesIO()
+        not_an_xray.save(buffer, format="PNG")
+        assert upload(buffer.getvalue()).json()["qc_passed"] is False
     assert client.post(f"{base}/analyze", headers=technician).status_code == 409  # only a failed image so far
     good_bytes = png()
     xray = upload(good_bytes).json()
@@ -230,3 +234,17 @@ def test_login_is_rate_limited(client):
     for _ in range(5):
         assert client.post(LOGIN, json={"email": "nobody@test.local", "password": "nope"}).status_code == 401
     assert client.post(LOGIN, json={"email": "nobody@test.local", "password": "nope"}).status_code == 429
+
+
+def test_client_ip_trusts_only_the_local_proxy():
+    from starlette.requests import Request
+
+    from backend.security import client_ip
+
+    def request(host, forwarded):
+        headers = [(b"x-forwarded-for", forwarded.encode())] if forwarded else []
+        return Request({"type": "http", "client": (host, 1234), "headers": headers})
+
+    assert client_ip(request("127.0.0.1", "9.9.9.9, 10.0.0.7")) == "10.0.0.7"  # last entry: the one our proxy added
+    assert client_ip(request("203.0.113.5", "1.2.3.4")) == "203.0.113.5"  # a direct caller cannot pick its address
+    assert client_ip(request("127.0.0.1", "")) == "127.0.0.1"

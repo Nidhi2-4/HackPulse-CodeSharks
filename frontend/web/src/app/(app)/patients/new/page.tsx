@@ -70,7 +70,7 @@ export default function NewPatient() {
         </label>
         <label className="label">
           Height (cm)
-          <input name="heightCm" type="number" required min={100} max={220} className="input" />
+          <input name="heightCm" type="number" required min={120} max={220} className="input" />
         </label>
         <label className="label">
           Weight (kg)

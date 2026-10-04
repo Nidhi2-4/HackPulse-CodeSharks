@@ -30,10 +30,10 @@ class UserOut(BaseModel):
 class PatientIn(BaseModel):
     mrn: str = Field(min_length=1, max_length=40)
     name: str = Field(min_length=1, max_length=120)
-    age: int = Field(ge=0, le=120)
+    age: int = Field(ge=18, le=120)  # adults only
     sex: Sex
-    height_cm: float = Field(gt=50, lt=250)
-    weight_kg: float = Field(gt=10, lt=300)
+    height_cm: float = Field(ge=120, le=220)
+    weight_kg: float = Field(ge=25, le=250)
     phone: str | None = Field(default=None, min_length=6, max_length=20)
     abha_id: str | None = Field(default=None, max_length=40)
     consent_given: bool

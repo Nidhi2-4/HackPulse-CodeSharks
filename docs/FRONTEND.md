@@ -65,7 +65,7 @@ In the UI, always call relative paths through `api.ts`. Never hard-code a host o
 
 `pdfReport.ts` builds it in the browser from what the backend stored. Page 1 has the letterhead (hospital on the left, SarcoScan on the right), the patient box, the two results, the measured values next to their cutoffs, the suggested action, the doctor's note, and who screened and reviewed. Page 2 has the X-ray.
 
-The hospital name and address are typed on the sign-in page and remembered in that browser (`localStorage`; they are a device setting, not patient data). Without a name the report says "Demo Hospital". The seed-account buttons fill in a made-up hospital. The hospital mark is a plain cross drawn by the code, not a real logo.
+The hospital name and address are typed on the sign-in page and remembered in that browser (`localStorage`; they are a device setting, not patient data). Without a name the report says "Demo Hospital". The seed-account buttons fill in a made-up hospital. There is no hospital logo, only the name.
 
 ## The screening flow
 

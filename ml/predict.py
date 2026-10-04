@@ -1,6 +1,7 @@
 """Inference code the backend calls. See "Handing models to the backend" in docs/ML.md.
 
-Both models are DenseNet121 classifiers trained by Pravesh (reports in models/models/).
+Both models are DenseNet121 classifiers trained by Pravesh with the scripts in ml/training/
+(reports in models/models/).
 The weight files are not in git: copy osteoporosis_best.pt and arthritis_best.pt into ml/models/.
 """
 from pathlib import Path
@@ -13,11 +14,19 @@ from torchvision import transforms
 MODELS = Path(__file__).parent / "models"
 MODEL_VERSION = "osteo-densenet121-0.1+kl-densenet121-0.1"
 
-# TODO(Pravesh): confirm this matches the eval transform in the training script. The script is
-# not in the repo, so this is the usual ImageNet setup. A different resize or normalisation
-# shifts the probabilities (measured: osteopenia 0.47 to 0.58 on one sample across variants).
+# Same steps as eval_tf and load_xray in ml/training/train_osteoporosis.py and train_arthritis.py.
+# Keep the three in step: a different resize or normalisation shifts the probabilities.
+def _pad_to_square(image: Image.Image) -> Image.Image:
+    """Pad with black to a square instead of squashing the knee."""
+    side = max(image.size)
+    square = Image.new(image.mode, (side, side), 0)
+    square.paste(image, ((side - image.width) // 2, (side - image.height) // 2))
+    return square
+
+
 _PREPROCESS = transforms.Compose(
     [
+        _pad_to_square,
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -46,11 +55,16 @@ _kl, _kl_classes = _load("arthritis_best.pt")
 
 def analyze(image_path: str, age: int, sex: str, bmi: float) -> dict:
     """age, sex, and bmi are accepted but unused: both models look at the image only."""
+    # ponytail: 8-bit PNG and JPG only, which is all the upload endpoint accepts. The training loader
+    # also rescales 16-bit images; copy that here if DICOM or 16-bit PNG uploads are ever allowed.
     with Image.open(image_path) as image:
-        batch = _PREPROCESS(image.convert("RGB")).unsqueeze(0)
+        batch = _PREPROCESS(image.convert("L").convert("RGB")).unsqueeze(0)
+    # The image and its mirror, averaged: the same test-time step the training scripts used for
+    # the reported scores. It also stops a left knee and a right knee getting different answers.
+    batch = torch.cat([batch, torch.flip(batch, dims=[3])])
     with torch.inference_mode():
-        osteo = torch.softmax(_osteo(batch), dim=1)[0]
-        kl = torch.softmax(_kl(batch), dim=1)[0]
+        osteo = torch.softmax(_osteo(batch), dim=1).mean(dim=0)
+        kl = torch.softmax(_kl(batch), dim=1).mean(dim=0)
     return {
         "model_version": MODEL_VERSION,
         "osteoporosis_prob": float(osteo[_osteo_classes.index("Osteoporosis")]),

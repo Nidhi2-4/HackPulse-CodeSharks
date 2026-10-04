@@ -74,10 +74,8 @@ export function buildReport(patient: Patient, s: Screening, logo: Picture | null
 
   /** Hospital on the left, the software on the right. Drawn at the top of every page. */
   const letterhead = () => {
-    doc.setFillColor(...BRAND).roundedRect(left, 10, 12, 12, 2, 2, "F");
-    doc.setFillColor(255, 255, 255).rect(left + 4.75, 12.5, 2.5, 7, "F").rect(left + 2.5, 14.75, 7, 2.5, "F");
-    write(HOSPITAL, left + 16, HOSPITAL_ADDRESS ? 15 : 17.6, 14, INK, "bold");
-    if (HOSPITAL_ADDRESS) write(HOSPITAL_ADDRESS, left + 16, 20, 8.5, MUTED);
+    write(HOSPITAL, left, HOSPITAL_ADDRESS ? 15 : 17.6, 14, INK, "bold");
+    if (HOSPITAL_ADDRESS) write(HOSPITAL_ADDRESS, left, 20, 8.5, MUTED);
 
     write("SarcoScan", right, 15, 14, INK, "bold", "right");
     write("AI-assisted screening aid", right, 20, 8.5, MUTED, "normal", "right");
