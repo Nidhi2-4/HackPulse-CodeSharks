@@ -56,9 +56,8 @@ The spec also describes a task queue, object storage, PACS integration, FHIR exp
 backend/          FastAPI app, database models, security, tests
 frontend/web/     Next.js web app (the clinic dashboard and the public site)
 frontend/mobile/  Expo template, not started. Phones use the web app for now.
-ml/               Datasets (not committed), training notebooks, final models
+ml/               Training scripts, the four models' weights (not committed), inference code, reports
 docs/             Spec, pitch deck, and the design docs listed below
-infra/, firmware/ Placeholders from the first layout, empty
 ```
 
 ## Getting started

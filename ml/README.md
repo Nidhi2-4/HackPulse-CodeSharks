@@ -16,9 +16,10 @@ ml/
 │       ├── main/          train and validate
 │       ├── external/      test only
 │       └── cgmh/          test only (hospital data, doctor-graded)
-├── notebooks/             training notebooks
+│   └── samples/           test X-rays; `web/` holds 22 openly licensed ones with CREDITS.md
 ├── training/              Pravesh's scripts: dataset cleaning, duplicate checks, splits, training
-├── models/                final models the backend loads. Not in git (*.pt is ignored): copy them in by hand.
+├── models/                the four weight files the backend loads. Not in git: copy them in from the team's Drive.
+├── reports/               training reports and plots (in git)
 ├── predict.py             functions the backend imports (the two X-ray models)
 └── tabular.py             the two models that use body measurements and history; the backend calls it
 ```

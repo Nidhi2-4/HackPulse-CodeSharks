@@ -147,3 +147,4 @@ Thumbs.db
 !frontend/*/src/**/uploads/
 !frontend/*/src/**/data/
 !frontend/*/src/**/storage/
+!ml/reports/

@@ -216,13 +216,14 @@ function toScreening(r: ApiResult): Screening {
     osteoProb: r.osteoporosis_prob,
     osteoTier: r.osteoporosis_tier,
     klGrade: r.kl_grade,
-    lowMuscle: r.low_muscle,
-    lowMuscleProb: r.low_muscle_prob,
-    boneLoss: r.bone_loss,
-    boneLossProb: r.bone_loss_prob,
+    // ?? null: a backend that has not been restarted since these fields were added leaves them out.
+    lowMuscle: r.low_muscle ?? null,
+    lowMuscleProb: r.low_muscle_prob ?? null,
+    boneLoss: r.bone_loss ?? null,
+    boneLossProb: r.bone_loss_prob ?? null,
     waistCm: r.waist_cm ?? undefined,
     armCm: r.arm_circ_cm ?? undefined,
-    historyAsked: r.history !== null,
+    historyAsked: r.history != null,
     override:
       r.review && !r.review.agrees_with_ai
         ? { stage: r.review.final_stage, reason: r.review.notes ?? "", by: r.reviewed_by_name ?? "Doctor" }

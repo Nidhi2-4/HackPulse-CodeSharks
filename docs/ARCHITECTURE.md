@@ -40,7 +40,7 @@ Three rules hold the design together:
 | Backend API | `backend/` | Python, FastAPI, SQLAlchemy, Pydantic | Anish | done for the demo flow |
 | Database | hosted (Supabase) for development | PostgreSQL 17 | Anish | done |
 | File storage | `backend/uploads/` | local disk, with an optional Cloudinary copy | Anish | in progress |
-| Model training | `ml/notebooks/`, `ml/data/` | PyTorch, XGBoost | Pravesh | in progress |
+| Model training | `ml/training/`, `ml/data/` | PyTorch, XGBoost | Pravesh | in progress |
 | Model inference | `ml/predict.py`, `ml/models/` | Python | Pravesh | planned |
 | Web UI | `frontend/web/` | Next.js 16, TypeScript, Tailwind, jsPDF | Nidhi | done: wired to the API. PWA manifest left. |
 | Mobile | the web app; notes in `MOBILE.md` | PWA install first, Capacitor shell later | Nidhi | planned. `frontend/mobile/` is an unused Expo template. |

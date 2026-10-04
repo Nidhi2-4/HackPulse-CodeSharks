@@ -166,7 +166,7 @@ Three honest limits:
 
 ## Handing models to the backend
 
-- Put the final model files in `ml/models/`: `osteoporosis_best.pt` and `arthritis_best.pt`. Git ignores `*.pt`, so they are not in the repo; each teammate copies them in by hand from the team's Drive folder: https://drive.google.com/drive/folders/1Zxi-auctfcBx3Jhcx89zlIls5CgT20VN Without them (or without torch) the app runs and shows "AI model: not connected". The `*_last.pt` files are training checkpoints and are not needed.
+- Put the final model files in `ml/models/`: `osteoporosis_best.pt`, `arthritis_best.pt`, `sarcopenia_ANN_1.joblib`, `osteoporosis_XGBoost_1.joblib`. Git ignores `*.pt`, so they are not in the repo; each teammate copies them in by hand from the team's Drive folder: https://drive.google.com/drive/folders/1Zxi-auctfcBx3Jhcx89zlIls5CgT20VN Without them (or without torch) the app runs and shows "AI model: not connected". The `*_last.pt` files are training checkpoints and are not needed.
 - Write the inference code in `ml/predict.py`. The backend already calls it (`backend/analysis.py`), so the name and arguments are fixed:
 
   ```python
@@ -197,7 +197,7 @@ Three honest limits:
 
 ## Results
 
-Figures are copied from Pravesh's training reports (`models/models/*_report.json`). They were not re-measured.
+Figures are copied from Pravesh's training reports (`ml/reports/*_report.json`). They were not re-measured.
 
 | Model | Date | Trained on | Internal test | External test | Notes |
 |---|---|---|---|---|---|
@@ -208,7 +208,7 @@ How the app uses them: the tier is the predicted class (Normal = low, Osteopenia
 
 ### Tabular models (connected 2026-10-04)
 
-Pravesh also shared three models that use numbers, not the image. They are in `models/models/` locally and in the Drive folder. `ml/tabular.py` loads the two that are in use (`python -m ml.tabular` checks them) and the analyze endpoint calls both.
+Pravesh also shared three models that use numbers, not the image. The two in use sit in `ml/models/` next to the X-ray weights; all of them are in the Drive folder. `ml/tabular.py` loads the two that are in use (`python -m ml.tabular` checks them) and the analyze endpoint calls both.
 
 How the app uses them: "low muscle mass" from the first model is the muscle evidence in the sarcopenia stage rule, so the stage can now reach probable and severe. "Bone loss" from the second is shown as a separate line next to the X-ray result and changes nothing else. Waist, arm circumference, and the history answers are optional; what is missing the model fills in with typical values, and the result says so. The US ethnicity code is never sent.
 

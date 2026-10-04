@@ -4,7 +4,7 @@
     bone_loss(...)   osteoporosis_XGBoost_1.joblib  chance of osteopenia or osteoporosis
 
 Both were trained on NHANES (US survey; see ml/training/build_nhanes_dataset.py). The muscle model
-saw ages 20 to 59 only. Weight files are in models/models/ and the team's Drive, not in git.
+saw ages 20 to 59 only. Weight files go in ml/models/ (from the team's Drive); they are not in git.
 
 Needs: scikit-learn 1.6.1, xgboost, joblib, pandas, h5py, numpy 2.
 Check it runs: python -m ml.tabular
@@ -18,7 +18,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-MODELS = Path(__file__).parent.parent / "models" / "models"
+MODELS = Path(__file__).parent / "models"
 
 # joblib files run code when opened. Only load files that came from the team.
 _muscle = joblib.load(MODELS / "sarcopenia_ANN_1.joblib")

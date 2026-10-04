@@ -1,7 +1,7 @@
 """Inference code the backend calls. See "Handing models to the backend" in docs/ML.md.
 
 Both models are DenseNet121 classifiers trained by Pravesh with the scripts in ml/training/
-(reports in models/models/).
+(reports in ml/reports/).
 The weight files are not in git: copy osteoporosis_best.pt and arthritis_best.pt into ml/models/.
 """
 from pathlib import Path

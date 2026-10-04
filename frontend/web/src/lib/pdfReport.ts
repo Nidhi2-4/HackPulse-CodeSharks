@@ -77,12 +77,12 @@ export function buildReport(patient: Patient, s: Screening, logo: Picture | null
     write(HOSPITAL, left, HOSPITAL_ADDRESS ? 15 : 17.6, 14, INK, "bold");
     if (HOSPITAL_ADDRESS) write(HOSPITAL_ADDRESS, left, 20, 8.5, MUTED);
 
-    write("SarcoScan", right, 15, 14, INK, "bold", "right");
-    write("AI-assisted screening aid", right, 20, 8.5, MUTED, "normal", "right");
-    if (logo) {
-      const logoWidth = (12 * logo.width) / logo.height;
-      doc.addImage(logo.data, "PNG", right - doc.getTextWidth("AI-assisted screening aid") - 3 - logoWidth, 10, logoWidth, 12);
-    }
+    // The logo sits at the right edge with the name to its left.
+    const logoWidth = logo ? (12 * logo.width) / logo.height : 0;
+    if (logo) doc.addImage(logo.data, "PNG", right - logoWidth, 10, logoWidth, 12);
+    const nameEnd = right - (logo ? logoWidth + 3 : 0);
+    write("SarcoScan", nameEnd, 15, 14, INK, "bold", "right");
+    write("AI-assisted screening aid", nameEnd, 20, 8.5, MUTED, "normal", "right");
     doc.setFillColor(...BRAND).rect(left, 25, span, 0.7, "F");
   };
   const heading = (text: string) => {
