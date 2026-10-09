@@ -7,7 +7,8 @@ services:
     name: sarcoscan-api
     runtime: python
     plan: free
-    buildCommand: npm run build:api
+    rootDir: backend
+    buildCommand: npm run build
     startCommand: npm start
     healthCheckPath: /api/v1/health
     envVars:

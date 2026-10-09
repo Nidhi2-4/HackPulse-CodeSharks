@@ -32,11 +32,11 @@ Locally the whole stack starts with `npm run dev` (see the root README). Hosted,
 
 | Setting | API service | Web service |
 |---|---|---|
-| Root Directory | empty | `frontend/web` |
-| Build Command | `npm run build:api` (same as `pip install -r requirements.txt`) | `npm ci && npm run build` |
+| Root Directory | `backend` | `frontend/web` |
+| Build Command | `npm run build` (runs `pip install -r requirements.txt`, from `backend/package.json`) | `npm ci && npm run build` |
 | Start Command | `npm start` (on Render it starts only the API, on `$PORT`) | `npm start` |
 
-The API must run from the repo root. With Root Directory set to `backend`, the start fails with `No module named 'backend'`.
+Render runs these commands inside `backend/`. `npm start` there calls `scripts/run.mjs`, which starts uvicorn from the repo root, so `backend` and `ml` can both be imported (running `uvicorn backend.main:app` directly inside `backend/` fails with `No module named 'backend'`). With a root directory set, Render redeploys only when files under `backend/` change: after a change in `ml/` only, use Manual Deploy.
 
 ## Limits to know before the demo
 
