@@ -1,6 +1,6 @@
 # Plan
 
-Owner: everyone. Last updated: 2026-10-04.
+Owner: everyone. Last updated: 2026-10-09.
 
 This is the task list. Tick a box when the thing works, not when it is started. Update it in the same commit as the work.
 
@@ -31,7 +31,7 @@ M1 comes before making any single piece good. Joining the parts on the last day 
 Ticked items pass the tests in `backend/tests/` on SQLite.
 
 - [x] FastAPI confirmed as the backend framework
-- [ ] First commit and push (M0)
+- [x] First commit and push (M0)
 - [x] The API run against PostgreSQL (the Supabase development database)
 - [x] `.env.example` written
 - [x] The 9 tables in `DATABASE.md`
@@ -49,6 +49,8 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 - [x] Test: each role is refused where `SECURITY.md` says No
 - [x] Append-only triggers on `audit_logs`, checked on PostgreSQL
 - [x] Name and phone encryption, with `phone_hash` for search
+- [x] One-command setup and run from the repo root (`npm run setup`, `npm run dev`, `npm start`); `npm run check` runs the CI checks locally
+- [x] API hosted on Render (root directory `backend`, the two measurement models loaded), web app on Vercel
 - [ ] Cloudinary copies of X-rays made private (`SECURITY.md` checklist item 17)
 - [ ] DICOM uploads converted to PNG (only if DICOM upload is supported)
 - [ ] `docker-compose.yml` with database, backend, and web (M3)

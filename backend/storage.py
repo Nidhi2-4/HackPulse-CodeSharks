@@ -7,7 +7,7 @@ from typing import BinaryIO
 
 from .config import settings
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 # The copy on Cloudinary is made only when STORAGE_BACKEND=cloudinary and CLOUDINARY_URL is set.
 _mirror = False
@@ -19,7 +19,7 @@ if settings.storage_backend == "cloudinary" and settings.cloudinary_url:
         cloudinary.config(cloudinary_url=settings.cloudinary_url)
         _mirror = True
     except Exception as e:
-        logger.warning("Failed to configure Cloudinary: %s", e)
+        log.warning("Failed to configure Cloudinary: %s", e)
 
 
 def save(source: BinaryIO, suffix: str) -> str:
@@ -43,7 +43,7 @@ def save(source: BinaryIO, suffix: str) -> str:
                 type="authenticated",
             )
         except Exception as e:
-            logger.error("Cloudinary upload failed: %s", e)
+            log.error("Cloudinary upload failed: %s", e)
 
     return key
 

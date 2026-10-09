@@ -24,7 +24,7 @@ function step(title, command, args, cwd = root, { canFail = false } = {}) {
 }
 
 if (!existsSync(venvPython)) step("Create .venv", systemPython, ["-m", "venv", ".venv"]);
-const pipArgs = ["install", "-r", "requirements.txt"];
+const pipArgs = ["install", "-r", join("backend", "requirements.txt")];
 const installed = step("Install backend packages (first time takes a few minutes: torch)", venvPython,
   ["-m", "pip", ...pipArgs], root, { canFail: true });
 if (!installed) {

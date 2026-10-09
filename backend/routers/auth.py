@@ -1,3 +1,4 @@
+"""Sign in, refresh, sign out, and who am I. Tokens and cookies are explained in docs/SECURITY.md."""
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session

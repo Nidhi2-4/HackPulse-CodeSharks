@@ -4,7 +4,7 @@
 
 A screening tool that combines a routine knee AP X-ray with a handgrip test to flag sarcopenia and osteoporosis risk, with no DEXA or CT needed.
 
-> Status on 2026-10-04: the web app and the backend work end to end: sign in, register a patient, enter handgrip and clinical inputs, upload an X-ray, run the screening, doctor review, PDF report. The AI model is not connected yet, so the sarcopenia stage comes from the AWGS 2019 rules and the image-based results are shown as not available. Numbers in this README are targets to validate, not measured results.
+> Status on 2026-10-09: the web app and the backend work end to end: sign in, register a patient, enter handgrip and clinical inputs, upload an X-ray, run the screening, doctor review, PDF report. Four models are connected: osteoporosis and KL grade from the X-ray, low muscle mass and bone loss from body measurements. The sarcopenia stage applies the AWGS 2019 rules to grip, chair-stand time and the models' low-muscle answer. The hosted API loads the two measurement models only (free-plan memory, see [docs/DEPLOY.md](docs/DEPLOY.md)). Numbers in this README are targets to validate, not measured results.
 
 ## Problem statement
 
@@ -54,7 +54,7 @@ Where it runs:
 | Part | Local (`npm run dev`) | Hosted |
 |---|---|---|
 | Web app | http://localhost:3000 | Vercel (`frontend/web`) |
-| API | http://127.0.0.1:8000 | Render (`render.yaml`) |
+| API | http://127.0.0.1:8000 | Render (root directory `backend`, `render.yaml`) |
 | Database | `sarcoscan.db` (SQLite file) | Supabase PostgreSQL |
 | Files | `backend/uploads/` | service disk, optional private Cloudinary copy |
 
@@ -64,18 +64,19 @@ The spec also describes a task queue, object storage, PACS integration, FHIR exp
 
 ## Repository structure
 
-```
-backend/          FastAPI app, database models, security, tests
-frontend/web/     Next.js web app (the clinic dashboard and the public site)
-frontend/mobile/  Expo template, not started. Phones use the web app for now.
-ml/               Models' weights, inference code (predict.py, tabular.py, muscle.py), training scripts, reports
-docs/             Spec, pitch deck, and the design docs listed below
-scripts/          run.mjs and setup.mjs behind the npm commands below
-.github/          CI: backend tests, web lint and build on every push
-package.json      the commands for the whole project (no packages of its own)
-requirements.txt  points to backend/requirements.txt (hosts look for it at the root)
-render.yaml       Render blueprint for the API
-```
+| Path | What is in it | Owner |
+|---|---|---|
+| `backend/` | FastAPI app, database models, security, tests ([backend/README.md](backend/README.md)) | Anish |
+| `frontend/web/` | Next.js web app: the clinic dashboard and the public site | Nidhi |
+| `frontend/mobile/` | Expo template for the mobile app, not started. Phones use the web app for now. | Nidhi |
+| `ml/` | Model weights, inference code (`predict.py`, `tabular.py`, `muscle.py`), training scripts, reports | Pravesh |
+| `docs/` | Spec, pitch deck, and the design docs listed below | Soham (pitch); each doc names its owner |
+| `scripts/` | `run.mjs` and `setup.mjs`, behind the npm commands below | Anish |
+| `.github/` | CI: backend tests, web lint and build on every push | Anish |
+| `package.json` | The commands for the whole project (no packages of its own) | Anish |
+| `render.yaml` | Render blueprint for the API | Anish |
+| `.env.example` | Every setting the API reads, with how to make each value | Anish |
+| `AGENTS.md` | Rules for AI coding assistants (`CLAUDE.md` points to it) | everyone |
 
 ## Getting started
 
@@ -91,7 +92,7 @@ Open http://localhost:3000. `npm run setup` prints the three seed logins (`admin
 | Command | Does |
 |---|---|
 | `npm run dev` | API on 8000 with auto-reload, web app on 3000 |
-| `npm start` | Same, with the production web build (builds once if needed) |
+| `npm start` | Same, with the production web build (builds once if needed). On Render, or with `ONLY=api`, the API only |
 | `npm test` | Backend tests |
 | `npm run lint` / `npm run build` | Web app checks |
 | `npm run check` | All of the above, the same as CI |

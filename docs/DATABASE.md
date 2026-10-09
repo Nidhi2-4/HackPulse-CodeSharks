@@ -1,6 +1,6 @@
 # Database
 
-Owner: Anish. Last updated: 2026-10-04.
+Owner: Anish. Last updated: 2026-10-09.
 
 PostgreSQL. Status: nine tables are defined in `backend/models.py`, tested on SQLite, and created on the team's development database (PostgreSQL 17 on Supabase), where the audit triggers were checked.
 
@@ -190,8 +190,6 @@ Each review is a new row. The system's result in `analysis_results` is never cha
 ## Known gaps
 
 - Patient `name` and `phone` are encrypted columns, so name search happens in the application, not in SQL. It reads every patient row, which is fine for a demo and too slow for thousands of patients.
-- There are no migrations. One change is applied by hand at startup in `backend/main.py`: the phone columns became optional after the first tables were created.
+- There are no migrations. `upgrade_schema()` in `backend/db.py` runs at startup: it makes the phone columns optional (they became optional after the first tables were created) and adds new nullable columns to existing databases.
 - The development database is reached through a connection pooler, so prepared statements are turned off in `backend/db.py`.
 - Tables are created at startup. Changing a column means dropping and recreating the table, which is acceptable only while the data is throwaway.
-
-New nullable columns are added to existing databases at startup (`backend/main.py`); there is no Alembic yet.

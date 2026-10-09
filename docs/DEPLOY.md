@@ -1,8 +1,8 @@
 # Deploying
 
-Owner: Anish. Last updated: 2026-10-04.
+Owner: Anish. Last updated: 2026-10-09.
 
-Status: files for Render are in the repo (`render.yaml`). The API is live at https://hackpulse-codesharks.onrender.com. On 2026-10-04 one full screening was run against it: all four models answered, with the same result as on the laptop. The analysis took 45 seconds there (about 0.3 on the laptop).
+Status: the API is live on Render at https://hackpulse-codesharks.onrender.com and the web app on Vercel. On 2026-10-04 one full screening was run against the API with all four models: same result as on the laptop, 45 seconds there (about 0.3 on the laptop). The free plan's memory does not hold all four, so the API now runs with `SARCOSCAN_MODELS=tabular`; on 2026-10-09 `/api/v1/health` answered `"model_connected": false, "tabular_connected": true`.
 
 ## Before deploying
 
@@ -14,33 +14,44 @@ Locally the whole stack starts with `npm run dev` (see the root README). Hosted,
 
 | Part | Where | Notes |
 |---|---|---|
-| API | Render web service `sarcoscan-api` | Python, starts with uvicorn |
-| Web app | Render web service `sarcoscan-web` | Next.js; forwards `/api` to the API |
+| API | Render web service `sarcoscan-api`, root directory `backend` | `npm start` starts uvicorn on `$PORT` |
+| Web app | Vercel project, root directory `frontend/web` | Next.js; forwards `/api` to the API, so the browser sees one origin |
 | Database | Supabase | the `DATABASE_URL` in `.env.prod` |
-| X-ray files | the API's own disk | lost on every redeploy and restart on the free plan |
+| X-ray files | the API's own disk, plus a private Cloudinary copy when `CLOUDINARY_URL` is set | the disk copy is lost on every redeploy and restart on the free plan |
 
 ## Steps
 
 1. Push `main` to GitHub.
-2. In Render: New, Blueprint, choose the repo. Render reads `render.yaml` and shows both services.
-3. For `sarcoscan-api`, type in `DATABASE_URL`, `JWT_SECRET`, `FIELD_KEY`, `HASH_KEY` from `.env.prod`. Use the same `FIELD_KEY` and `HASH_KEY` as the database was filled with, or stored patient names cannot be read.
-4. Deploy the API. Open `https://<api>.onrender.com/api/v1/health`; it should answer `{"status":"ok", ...}`.
-5. For `sarcoscan-web`, set `BACKEND_URL` to the API's address (no slash at the end), then deploy. It is read at build time: change it, redeploy.
-6. Open the web app and sign in with a seed account. If the database is new, run `python -m backend.seed` once with `ENV_FILE=.env.prod` from your own machine.
+2. API: in Render, New, Blueprint, choose the repo. Render reads `render.yaml` and shows `sarcoscan-api`. Type in `DATABASE_URL`, `JWT_SECRET`, `FIELD_KEY`, `HASH_KEY` and `CLOUDINARY_URL` from `.env.prod`. Use the same `FIELD_KEY` and `HASH_KEY` as the database was filled with, or stored patient names cannot be read.
+3. Deploy the API. Open `https://<api>.onrender.com/api/v1/health`; it should answer `{"status":"ok", ...}` and say which models are connected.
+4. Web app: in Vercel, Add New, Project, choose the repo and set Root Directory to `frontend/web` (Vercel detects Next.js). Add the environment variable `BACKEND_URL` with the API's address (no slash at the end), then deploy. It is read at build time: change it, redeploy.
+5. Open the web app and sign in with a seed account. If the database is new, run `npm run seed` once from your own machine with `ENV_FILE=.env.prod` set.
 
-## Render settings (when the service was made by hand, not from the blueprint)
+## Settings by hand (when a service was not made from the blueprint)
 
-| Setting | API service | Web service |
-|---|---|---|
-| Root Directory | `backend` | `frontend/web` |
-| Build Command | `npm run build` (runs `pip install -r requirements.txt`, from `backend/package.json`) | `npm ci && npm run build` |
-| Start Command | `npm start` (on Render it starts only the API, on `$PORT`) | `npm start` |
+Render, the API:
+
+| Setting | Value |
+|---|---|
+| Root Directory | `backend` |
+| Build Command | `npm run build` (runs `pip install -r requirements.txt`, from `backend/package.json`) |
+| Start Command | `npm start` (on Render it starts only the API, on `$PORT`) |
+| Health Check Path | `/api/v1/health` |
+| Environment | `PYTHON_VERSION=3.11.9`, `COOKIE_SECURE=true`, `SARCOSCAN_MODELS=tabular`, `STORAGE_BACKEND=cloudinary`, and the five values from step 2 |
 
 Render runs these commands inside `backend/`. `npm start` there calls `scripts/run.mjs`, which starts uvicorn from the repo root, so `backend` and `ml` can both be imported (running `uvicorn backend.main:app` directly inside `backend/` fails with `No module named 'backend'`). With a root directory set, Render redeploys only when files under `backend/` change: after a change in `ml/` only, use Manual Deploy.
 
+Vercel, the web app:
+
+| Setting | Value |
+|---|---|
+| Root Directory | `frontend/web` |
+| Framework Preset | Next.js (detected); build and start commands left at Vercel's defaults |
+| Environment | `BACKEND_URL`, the API's address with no slash at the end |
+
 ## Limits to know before the demo
 
-- **Memory.** The free plan gives 512 MB. The four model files are in the repo and load at start. All four need more than 512 MB, and the service is then killed while starting (the log ends with "No open ports detected" or "Out of memory"). Set `SARCOSCAN_MODELS` on the API service and redeploy, trying in this order until it stays up: `xray,tabular` (everything), `xray` (osteoporosis, KL grade, overlay), `tabular` (muscle mass and bone loss from measurements), `none` (rules only). The app says which part is not connected. A 2 GB instance runs everything.
+- **Memory.** The free plan gives 512 MB. The four model files are in the repo; the groups named in `SARCOSCAN_MODELS` load at start. All four need more than 512 MB, and the service is then killed while starting (the log ends with "No open ports detected" or "Out of memory"). `render.yaml` sets `tabular` (muscle mass and bone loss from measurements), which fits. The other values are `xray,tabular` (everything), `xray` (osteoporosis, KL grade, overlay) and `none` (rules only). The app says which part is not connected. A 2 GB instance runs everything.
 
   Measured on Anish's Windows laptop on 2026-10-04 (process memory after one screening; Linux will differ somewhat):
 
@@ -53,12 +64,12 @@ Render runs these commands inside `backend/`. `npm start` there calls `scripts/r
 
   So all four do not fit in 512 MB, `xray` is at the edge, and `tabular` fits with room to spare.
 - **Sleep.** A free service sleeps after 15 minutes without a request. The next request waits about a minute. An uptime monitor (UptimeRobot, every 5 minutes) pointed at `/api/v1/ping` keeps it awake.
-- **Files.** Uploaded X-rays and overlays live on the service's disk and disappear on restart. Results stay in the database; the image then shows "could not be loaded".
+- **Files.** Uploaded X-rays and overlays live on the service's disk and disappear on restart. The Cloudinary copy is a backup; the app does not read from it. Results stay in the database; the image then shows "could not be loaded".
 - **Login rate limit.** Behind Render the API sees Render's proxy address, not the browser's, so the 5-a-minute limit is shared by everyone. Fine for a demo.
-- **Upload size.** Requests pass through the web service to the API. Keep X-rays to a few MB.
+- **Upload size.** Requests pass through Vercel to the API. Keep X-rays to a few MB.
 
 ## Before going live
 
-- Change the three seed passwords in the production database; they are the same as the local ones.
-- Do not set `NEXT_PUBLIC_DEMO_LOGINS` on the web service. It puts passwords into the page.
+- Change the three seed passwords in the production database.
+- Do not set `NEXT_PUBLIC_DEMO_LOGINS` on Vercel. It puts passwords into the page.
 - The `/demo` page shows made-up numbers. Label it or remove it.

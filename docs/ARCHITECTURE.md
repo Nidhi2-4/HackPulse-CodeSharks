@@ -1,8 +1,8 @@
 # Architecture
 
-Owner: Anish, reviewed by everyone. Last updated: 2026-10-04.
+Owner: Anish, reviewed by everyone. Last updated: 2026-10-09.
 
-Status: the backend and the web app work together end to end. No model is connected, so image-based results are empty.
+Status: the backend and the web app work together end to end, hosted on Render (API) and Vercel (web app) with the database on Supabase. Four models are connected; the hosted API loads the two body-measurement models only (512 MB free plan, see `DEPLOY.md`).
 
 The spec is `Documentation - SarcoScan (2).pdf` in this folder. Where this file and the spec differ, this file is the current plan, and the difference is listed under "What we build first".
 
@@ -23,8 +23,8 @@ It is a screening and referral tool. It does not replace DEXA and does not presc
                                  |
                      FastAPI backend  (backend/)
                     /            |             \
-           PostgreSQL     backend/uploads/     ml/predict.py + ml/models/
-           (records)      (X-rays, overlays)   (inference, same process)
+           PostgreSQL     backend/uploads/     ml/predict.py, ml/tabular.py
+           (records)      (X-rays, overlays)   + ml/models/ (same process)
 ```
 
 Three rules hold the design together:
@@ -38,10 +38,10 @@ Three rules hold the design together:
 | Part | Folder | Tech | Owner | Status |
 |---|---|---|---|---|
 | Backend API | `backend/` | Python, FastAPI, SQLAlchemy, Pydantic | Anish | done for the demo flow |
-| Database | hosted (Supabase) for development | PostgreSQL 17 | Anish | done |
+| Database | SQLite file locally, Supabase when hosted | PostgreSQL 17 | Anish | done |
 | File storage | `backend/uploads/` | local disk, with an optional Cloudinary copy | Anish | in progress |
 | Model training | `ml/training/`, `ml/data/` | PyTorch, XGBoost | Pravesh | in progress |
-| Model inference | `ml/predict.py`, `ml/models/` | Python | Pravesh | planned |
+| Model inference | `ml/predict.py`, `ml/tabular.py`, `ml/muscle.py`, `ml/models/` | Python | Pravesh | done: four models, called from `backend/analysis.py` |
 | Web UI | `frontend/web/` | Next.js 16, TypeScript, Tailwind, jsPDF | Nidhi | done: wired to the API. PWA manifest left. |
 | Mobile | the web app; notes in `MOBILE.md` | PWA install first, Capacitor shell later | Nidhi | planned. `frontend/mobile/` is an unused Expo template. |
 | Desktop | the web app; notes in `DESKTOP.md` | PWA install first, Tauri shell later | Nidhi, Anish | planned |
@@ -54,9 +54,9 @@ Three rules hold the design together:
 4. **Clinical inputs (optional).** SARC-F score, 5-chair-stand time, calf circumference.
 5. **Handgrip.** Three trials per hand, typed in by the technician. The backend marks the best value and compares it with the AWGS 2019 cutoff: below 28 kg for men, below 18 kg for women.
 6. **X-ray upload.** The backend validates the file, saves it under `backend/uploads/`, records it in `xray_studies`, and runs the quality check.
-7. **Analyze.** The backend calls the functions in `ml/predict.py`, saves the overlay image, and stores a row in `analysis_results`.
+7. **Analyze.** The backend calls `ml/predict.py` (X-ray) and `ml/tabular.py` (body measurements), saves the overlay image, and stores a row in `analysis_results`.
 8. **Results screen.** Stage, risk tier, overlay, and measured values next to their cutoffs.
-9. **Doctor review** (later). Accept or override, with notes.
+9. **Doctor review.** Accept or override, with notes.
 10. **Report.** PDF with inputs, cutoffs, overlay, and a disclaimer.
 11. **Follow-up.** On a repeat visit the history graph shows grip, ratios, and risk over time.
 
@@ -90,7 +90,8 @@ Why Tauri and not Electron for desktop: in Tauri the UI has no Node.js access an
 
 ## Where it runs
 
-- **Demo:** one laptop or one cloud VM runs PostgreSQL (Docker), the backend, and the web app. PWA install and the shells need a URL with a valid HTTPS certificate.
+- **Local:** `npm run dev` runs the API and the web app on one machine with a SQLite file; `npm run setup` writes the `.env`.
+- **Hosted demo:** API on Render (root directory `backend`), web app on Vercel (root directory `frontend/web`), PostgreSQL on Supabase. Steps and limits are in `DEPLOY.md`. The Vercel address has the HTTPS certificate that PWA install and the shells need.
 - **One-command install:** a `docker-compose.yml` with three services (database, backend, web) is planned for milestone M3. It shows the on-prem story without MinIO, Redis, or a worker.
 - **On-prem (the product story):** the same stack on a hospital server on the local network, with no internet needed (spec page 3).
 - Target hardware from the spec: Intel i5, 16 GB RAM, no GPU, analysis under 5 seconds per study. This is a target; nothing has been measured yet.
@@ -112,3 +113,4 @@ Why Tauri and not Electron for desktop: in Tauri the UI has no Node.js access an
 | 2026-10-04 | Sarcopenia stage comes from AWGS-style rules until labelled data exists | proposed; see `ML.md` |
 | 2026-10-04 | Patient name and phone encrypted in the application; audit log append-only | proposed; Anish owns security, see `SECURITY.md` |
 | 2026-10-04 | Overlay shown as stacked images with a toggle, not as coordinates drawn on a canvas | proposed |
+| 2026-10-09 | Hosting for the demo: API on Render (free plan, root directory `backend`), web app on Vercel, database on Supabase | decided by Anish |

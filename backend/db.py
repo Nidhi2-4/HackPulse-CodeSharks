@@ -1,5 +1,9 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+"""Database engine, sessions, a 404 helper, and the small schema upgrades run at startup."""
+import uuid
+
+from fastapi import HTTPException, status
+from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from .config import settings
 
@@ -17,3 +21,37 @@ class Base(DeclarativeBase):
 def get_db():
     with SessionLocal() as db:
         yield db
+
+
+def get_or_404(db: Session, model, record_id: uuid.UUID, what: str):
+    """The row with this id, or a 404 that names what was missing."""
+    record = db.get(model, record_id)
+    if record is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"No such {what}")
+    return record
+
+
+# Columns added after the first databases were created. create_all never adds a column to an
+# existing table, so upgrade_schema() adds any that are missing.
+_ADDED_COLUMNS = {
+    "visits": {"waist_cm": "FLOAT", "arm_circ_cm": "FLOAT", "history_json": "TEXT"},
+    "analysis_results": {
+        "low_muscle": "BOOLEAN", "low_muscle_prob": "FLOAT", "bone_loss": "BOOLEAN", "bone_loss_prob": "FLOAT",
+    },
+}
+
+
+def upgrade_schema() -> None:
+    # ponytail: hand-written upgrades in place of Alembic. Each is safe to repeat. Move to Alembic once
+    # a change is more than "add a nullable column" or "drop a NOT NULL".
+    with engine.begin() as connection:
+        if engine.dialect.name == "postgresql":
+            # Databases created before the phone number became optional still require it.
+            connection.execute(
+                text("ALTER TABLE patients ALTER COLUMN phone DROP NOT NULL, ALTER COLUMN phone_hash DROP NOT NULL")
+            )
+        for table, columns in _ADDED_COLUMNS.items():
+            present = {column["name"] for column in inspect(connection).get_columns(table)}
+            for name, kind in columns.items():
+                if name not in present:
+                    connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {kind}"))

@@ -1,3 +1,0 @@
-# The real list is in backend/. This file exists so hosts that look for requirements.txt at the
-# repo root (Render's default build command) find it.
--r backend/requirements.txt

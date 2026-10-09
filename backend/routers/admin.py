@@ -1,10 +1,11 @@
+"""Admin only: the audit log and staff accounts. There is no public sign-up."""
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
-from ..db import get_db
+from ..db import get_db, get_or_404
 from ..models import AuditLog, RefreshToken, Role, User
 from ..schemas import AuditOut, UserActiveIn, UserAdminOut, UserIn
 from ..security import Audit, hash_password, require_roles
@@ -19,9 +20,6 @@ def audit_logs(
     _: User = Depends(require_roles(Role.admin)),
 ):
     return db.scalars(select(AuditLog).order_by(AuditLog.id.desc()).limit(limit)).all()
-
-
-# There is no public sign-up: an account opens patient records, so only an admin creates one.
 
 
 @router.get("/users", response_model=list[UserAdminOut])
@@ -55,9 +53,7 @@ def set_user_active(
     admin: User = Depends(require_roles(Role.admin)),
     audit: Audit = Depends(),
 ):
-    user = db.get(User, user_id)
-    if user is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such user")
+    user = get_or_404(db, User, user_id, "user")
     if user.id == admin.id and not body.is_active:
         raise HTTPException(status.HTTP_409_CONFLICT, "You cannot switch off your own account")
     user.is_active = body.is_active

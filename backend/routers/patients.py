@@ -1,3 +1,4 @@
+"""Register, list, search and open patients."""
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -5,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..crypto import phone_hash
-from ..db import get_db
+from ..db import get_db, get_or_404
 from ..models import Patient, User, now
 from ..schemas import PatientIn, PatientOut
 from ..security import STAFF, Audit, require_roles
@@ -65,9 +66,7 @@ def get_patient(
     user: User = Depends(require_roles(*STAFF)),
     audit: Audit = Depends(),
 ):
-    patient = db.get(Patient, patient_id)
-    if patient is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such patient")
+    patient = get_or_404(db, Patient, patient_id, "patient")
     audit.log(user, "VIEW", "patient", patient.id)
     db.commit()
     return patient

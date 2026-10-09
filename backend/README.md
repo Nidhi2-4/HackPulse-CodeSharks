@@ -2,7 +2,7 @@
 
 Owner: Anish. The FastAPI app, the database models, and every security check.
 
-Status on 2026-10-04: login, patients, the screening flow, doctor review, and the audit log are written, pass 11 tests on SQLite, and run against the team's PostgreSQL database. The web app uses them. The ML model is not connected. The PDF report is made in the web app.
+Status on 2026-10-09: login, patients, the screening flow, doctor review, staff accounts and the audit log are written, pass 13 tests on SQLite, and run on Render against the team's PostgreSQL database. The models in `ml/` are called from `analysis.py`; `SARCOSCAN_MODELS` chooses which load. The PDF report is made in the web app.
 
 Read before changing anything: [API](../docs/API.md), [Database](../docs/DATABASE.md), [Security](../docs/SECURITY.md).
 
@@ -10,24 +10,26 @@ Read before changing anything: [API](../docs/API.md), [Database](../docs/DATABAS
 
 ```
 backend/
-├── main.py            app object, includes the routers, creates tables at startup
-├── config.py          settings from .env
-├── db.py              engine and session
+├── main.py            app object, routers, startup (tables, schema upgrades, model loading)
+├── config.py          settings from .env (ENV_FILE picks another file)
+├── db.py              engine, session, get_or_404, schema upgrades
 ├── models.py          SQLAlchemy tables and the append-only triggers for audit_logs
 ├── schemas.py         Pydantic request and response models
 ├── crypto.py          AES-256-GCM column type for name and phone, and the phone hash
 ├── security.py        password hashing, tokens, role and audit dependencies, login rate limit
-├── analysis.py        cutoffs, the sarcopenia stage rule, the call into ml/predict.py
-├── storage.py         save and find uploaded files
+├── analysis.py        AWGS cutoffs, the sarcopenia stage rule, calls into ml/predict.py and ml/tabular.py
+├── xray_checks.py     an upload's real file type, and whether it looks like an X-ray
+├── storage.py         save and find uploaded files (optional private Cloudinary copy)
 ├── routers/
 │   ├── auth.py        login, refresh, logout, me
 │   ├── patients.py    register, list and search, details
 │   ├── visits.py      visit, inputs, grip, X-ray, analyze, result, review, history, files
-│   └── admin.py       audit log
+│   └── admin.py       audit log, staff accounts
 ├── seed.py            creates the first admin, doctor, and technician
 ├── tests/test_api.py
-├── requirements.txt
-└── uploads/           X-rays and overlays at runtime (ignored by git)
+├── requirements.txt   the only Python package list
+├── package.json       build and start commands for Render (its root directory is backend/)
+└── uploads/           X-rays and overlays at runtime (created on first upload, ignored by git)
 ```
 
 ## Setup
@@ -67,8 +69,8 @@ They use a temporary SQLite file and their own keys, so they need neither Postgr
 
 ## Calling the model
 
-`backend/analysis.py` imports `analyze` from `ml/predict.py`. Its arguments and return values are listed in [ML](../docs/ML.md) under "Handing models to the backend". Until that file exists, the analyze endpoint still works: it stores the rule-based sarcopenia stage and leaves the image-based fields empty.
+`backend/analysis.py` imports `analyze` from `ml/predict.py` (X-ray models) and the functions in `ml/tabular.py` (body-measurement models). Arguments and return values are in [ML](../docs/ML.md) under "Handing models to the backend". When a model is switched off with `SARCOSCAN_MODELS` or cannot load, the analyze endpoint still works: it stores the rule-based stage and leaves that model's fields empty.
 
 ## Packages to add with their features
 
-`reportlab` for the PDF report. The spec also names WeasyPrint, but on Windows it needs extra system libraries (Pango) that `pip` does not install. `pydicom` if DICOM upload is supported.
+`pydicom` if DICOM upload is supported.

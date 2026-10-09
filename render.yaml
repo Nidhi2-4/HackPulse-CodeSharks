@@ -1,4 +1,4 @@
-# Render blueprint: two web services, the API and the web app.
+# Render blueprint: the API only. The web app is on Vercel (root directory frontend/web).
 # In Render: New > Blueprint > pick this repo. Then fill in the values marked "sync: false".
 # Steps and limits are in docs/DEPLOY.md.
 
@@ -16,10 +16,10 @@ services:
         value: 3.11.9
       - key: COOKIE_SECURE
         value: "true"
-      # The free plan has 512 MB of memory; all four models need more. Try in this order until the
-      # service stays up: "xray,tabular", "xray", "tabular", "none". See docs/DEPLOY.md.
+      # The free plan has 512 MB of memory; all four models need about 670 MB. "tabular" fits.
+      # With more memory use "xray,tabular". See docs/DEPLOY.md.
       - key: SARCOSCAN_MODELS
-        value: xray
+        value: tabular
       - key: STORAGE_BACKEND
         value: cloudinary
       # Copy these from .env.prod. They are typed into Render, never committed.
@@ -31,18 +31,5 @@ services:
         sync: false
       - key: HASH_KEY
         sync: false
-
-  - type: web
-    name: sarcoscan-web
-    runtime: node
-    plan: free
-    rootDir: frontend/web
-    buildCommand: npm ci && npm run build
-    startCommand: npm start
-    envVars:
-      - key: NODE_VERSION
-        value: 22.13.1
-      # The API's address, for example https://sarcoscan-api.onrender.com (no slash at the end).
-      # It is read when the app is built, so redeploy the web service after changing it.
-      - key: BACKEND_URL
+      - key: CLOUDINARY_URL
         sync: false
