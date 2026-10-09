@@ -1,0 +1,19 @@
+{
+  "name": "sarcoscan",
+  "private": true,
+  "description": "SarcoScan: FastAPI backend (backend/), Next.js web app (frontend/web/), models (ml/). One command runs both.",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/run.mjs dev",
+    "start": "node scripts/run.mjs start",
+    "build": "npm --prefix frontend/web run build",
+    "build:api": "pip install -r requirements.txt",
+    "lint": "npm --prefix frontend/web run lint",
+    "test": "node scripts/run.mjs test",
+    "seed": "node scripts/run.mjs seed",
+    "check": "npm run test && npm run lint && npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -4,6 +4,12 @@ Owner: Anish. Last updated: 2026-10-04.
 
 Status: files for Render are in the repo (`render.yaml`). The API is live at https://hackpulse-codesharks.onrender.com. On 2026-10-04 one full screening was run against it: all four models answered, with the same result as on the laptop. The analysis took 45 seconds there (about 0.3 on the laptop).
 
+## Before deploying
+
+`npm run check` runs what CI runs (backend tests, web lint, web build). CI (`.github/workflows/ci.yml`) runs it on every push; deploy only a commit where it passed.
+
+Locally the whole stack starts with `npm run dev` (see the root README). Hosted, the two halves are separate services:
+
 ## What runs where
 
 | Part | Where | Notes |
@@ -27,8 +33,8 @@ Status: files for Render are in the repo (`render.yaml`). The API is live at htt
 | Setting | API service | Web service |
 |---|---|---|
 | Root Directory | empty | `frontend/web` |
-| Build Command | `pip install -r requirements.txt` | `npm ci && npm run build` |
-| Start Command | `python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT` | `npm start` |
+| Build Command | `npm run build:api` (same as `pip install -r requirements.txt`) | `npm ci && npm run build` |
+| Start Command | `npm start` (on Render it starts only the API, on `$PORT`) | `npm start` |
 
 The API must run from the repo root. With Root Directory set to `backend`, the start fails with `No module named 'backend'`.
 

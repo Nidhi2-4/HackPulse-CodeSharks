@@ -7,8 +7,8 @@ services:
     name: sarcoscan-api
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: npm run build:api
+    startCommand: npm start
     healthCheckPath: /api/v1/health
     envVars:
       - key: PYTHON_VERSION

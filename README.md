@@ -45,8 +45,20 @@ Browser (desktop or phone)
         |
   FastAPI backend  (backend)           login, roles, encryption, audit log, screening rules
     |          |             |
-PostgreSQL   uploads/     ml/predict.py   (not in the repo yet)
+ Database    uploads/     ml/  predict.py (X-ray models), tabular.py, muscle.py
+ SQLite locally, PostgreSQL (Supabase) when hosted
 ```
+
+Where it runs:
+
+| Part | Local (`npm run dev`) | Hosted |
+|---|---|---|
+| Web app | http://localhost:3000 | Vercel (`frontend/web`) |
+| API | http://127.0.0.1:8000 | Render (`render.yaml`) |
+| Database | `sarcoscan.db` (SQLite file) | Supabase PostgreSQL |
+| Files | `backend/uploads/` | service disk, optional private Cloudinary copy |
+
+Steps and limits for hosting are in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 The spec also describes a task queue, object storage, PACS integration, FHIR export, and a native mobile app. Those are not built; [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) lists what was left out and when it comes back.
 
@@ -56,34 +68,36 @@ The spec also describes a task queue, object storage, PACS integration, FHIR exp
 backend/          FastAPI app, database models, security, tests
 frontend/web/     Next.js web app (the clinic dashboard and the public site)
 frontend/mobile/  Expo template, not started. Phones use the web app for now.
-ml/               Training scripts, the four models' weights (not committed), inference code, reports
+ml/               Models' weights, inference code (predict.py, tabular.py, muscle.py), training scripts, reports
 docs/             Spec, pitch deck, and the design docs listed below
+scripts/          run.mjs and setup.mjs behind the npm commands below
+.github/          CI: backend tests, web lint and build on every push
+package.json      the commands for the whole project (no packages of its own)
+requirements.txt  points to backend/requirements.txt (hosts look for it at the root)
+render.yaml       Render blueprint for the API
 ```
 
 ## Getting started
 
-Backend, from the repo root (details in [backend/README.md](backend/README.md)):
+Needs Node 20+ and Python 3.10 or 3.11. From the repo root:
 
 ```
-python -m venv .venv
-python -m pip --python .venv\Scripts\python.exe install -r backend/requirements.txt
-.venv\Scripts\activate
-copy .env.example .env        # then fill it in
-python -m backend.seed
-uvicorn backend.main:app --reload
+npm run setup     # once: .venv + Python packages, web packages, a local .env, seed users
+npm run dev       # API (auto-reload) + web app together; Ctrl+C stops both
 ```
 
-Web app:
+Open http://localhost:3000. `npm run setup` prints the three seed logins (`admin@`, `doctor@`, `technician@sarcoscan.local`); they are also in `.env`.
 
-```
-cd frontend/web
-npm install
-npm run dev
-```
+| Command | Does |
+|---|---|
+| `npm run dev` | API on 8000 with auto-reload, web app on 3000 |
+| `npm start` | Same, with the production web build (builds once if needed) |
+| `npm test` | Backend tests |
+| `npm run lint` / `npm run build` | Web app checks |
+| `npm run check` | All of the above, the same as CI |
+| `npm run seed` | Create the seed users again |
 
-Open http://localhost:3000 and sign in with one of the seed accounts (`technician@sarcoscan.local`, `doctor@sarcoscan.local`, `admin@sarcoscan.local`; passwords are the ones in your `.env`).
-
-Tests: `python -m pytest backend`.
+Other ports: `API_PORT=8010 PORT=3010 npm run dev`. To run against the hosted database, set `ENV_FILE=.env.prod` first (see [backend/README.md](backend/README.md)).
 
 ## Documentation
 

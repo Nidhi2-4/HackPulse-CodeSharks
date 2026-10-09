@@ -32,34 +32,21 @@ backend/
 
 ## Setup
 
-Run everything from the repo root, so that both `backend` and `ml` can be imported.
+From the repo root, `npm run setup` does everything once: it creates `.venv`, installs `backend/requirements.txt`, writes a local `.env` (SQLite, fresh keys, random seed passwords) if there is none, and creates the seed users. Then `npm run dev` starts this API on port 8000 together with the web app.
+
+Run any Python command from the repo root, so that both `backend` and `ml` can be imported.
+
+By hand, without npm:
 
 ```
 python -m venv .venv
-python -m pip --python .venv\Scripts\python.exe install -r backend/requirements.txt
-.venv\Scripts\activate
+.venv\Scripts\python -m pip install -r requirements.txt
+copy .env.example .env        # then fill it in
+.venv\Scripts\python -m backend.seed
+.venv\Scripts\python -m uvicorn backend.main:app --reload
 ```
 
-The second line installs into the new environment with your main Python's pip. A fresh environment ships an old pip, and on this network that old pip fails with a certificate error.
-
-Copy `.env.example` to `.env` and fill it in. The file explains how to generate each secret.
-
-`DATABASE_URL` can point at any PostgreSQL. Three options:
-
-- A hosted database such as Supabase (what the team uses for development). Pick a region near you: every query crosses the network, and a far region makes each page slow.
-- A local container: `docker run --name sarcoscan-db -e POSTGRES_DB=sarcoscan -e POSTGRES_PASSWORD=change-me -p 5432:5432 -d postgres:15`
-- No database server at all, for a quick local run: `DATABASE_URL=sqlite:///./sarcoscan.db?check_same_thread=false`
-
-The server takes a few seconds to start with a hosted database, and `--reload` restarts it on every file save. If the web app cannot sign in, check that http://localhost:8000/api/v1/health answers.
-
-Create the first three users (passwords come from `.env`), then start the API:
-
-```
-python -m backend.seed
-uvicorn backend.main:app --reload
-```
-
-The generated API page is at http://localhost:8000/docs. Use "Authorize" there with the access token from `/auth/login`.
+A new virtual environment ships an old pip, which fails on some networks with a certificate error. Then install with the main Python's pip instead: `python -m pip --python .venv\Scripts\python.exe install -r requirements.txt` (`npm run setup` retries this way on its own).
 
 Two settings files, both ignored by git:
 

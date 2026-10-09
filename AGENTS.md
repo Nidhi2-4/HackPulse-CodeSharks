@@ -6,7 +6,7 @@ Read this before changing anything in this repo. It applies to every AI assistan
 
 SarcoScan is a screening tool. A knee AP X-ray plus handgrip and clinical inputs give a sarcopenia stage and an osteoporosis risk tier. It is a hackathon project (HackPulse, team CodeSharks). The full spec is `docs/Documentation - SarcoScan (2).pdf`.
 
-Current state on 2026-10-04: the backend (`python -m pytest backend`) and the web app (`npm run build` in `frontend/web/`) work together end to end. Two classifiers (osteoporosis, KL grade) are connected through `ml/predict.py`; the weight files are not in git. `docs/PLAN.md` tracks what is done.
+Current state on 2026-10-04: the backend and the web app work together end to end. From the repo root: `npm run setup` once, `npm run dev` to run both, `npm run check` before a commit (the same checks as CI). Two classifiers (osteoporosis, KL grade) are connected through `ml/predict.py`; the weight files are not in git. `docs/PLAN.md` tracks what is done.
 
 More than one AI assistant has edited this repo at the same time. Before changing a file, read its current contents; do not overwrite work you did not write.
 
