@@ -205,4 +205,4 @@ Say these openly if a judge asks. They are in the spec but not in the hackathon 
 | 17 | Cloud copies of X-rays are private, with signed links | done for the upload: `backend/storage.py` uploads with type `authenticated`, so no public URL exists. Not exercised against a real Cloudinary account. The app never serves from Cloudinary; images are read from local disk through the authenticated endpoints. |
 | 18 | The web app loads no third-party script at run time | done. A Tailwind CDN script tag was removed; styles are compiled at build time. |
 | 19 | No patient data in browser storage | done. The earlier localStorage store was replaced by calls to the backend. |
-| 20 | Supabase's REST API cannot reach the tables (row-level security on, no policies) | in progress: in `backend/db.py`, applied on the next deploy. Done once `/rest/v1/users` with the anon key returns no rows. |
+| 20 | Supabase's REST API cannot reach the tables (row-level security on, no policies) | done. On 2026-10-10, after the deploy, the anon key saw 0 rows in `users`, `patients`, `audit_logs` and `refresh_tokens`, and the API kept working. |

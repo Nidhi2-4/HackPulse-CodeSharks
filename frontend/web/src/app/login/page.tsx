@@ -112,7 +112,7 @@ export default function Login() {
           <div key={account.email} className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="font-medium">{account.role}</p>
-              <p className="truncate text-xs text-[#64748b]">{account.email}</p>
+              <p className="break-all text-xs text-[#64748b]">{account.email}</p>
             </div>
             <button
               type="button"

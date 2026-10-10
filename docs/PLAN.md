@@ -51,7 +51,7 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 - [x] Name and phone encryption, with `phone_hash` for search
 - [x] One-command setup and run from the repo root (`npm run setup`, `npm run dev`, `npm start`); `npm run check` runs the CI checks locally
 - [x] API hosted on Render (root directory `backend`, the two measurement models loaded), web app on Vercel
-- [ ] Row-level security on every table, so Supabase's REST API gives the anon key nothing (code done; check after deploy)
+- [x] Row-level security on every table, so Supabase's REST API gives the anon key nothing
 - [ ] Cloudinary copies of X-rays made private (`SECURITY.md` checklist item 17)
 - [ ] DICOM uploads converted to PNG (only if DICOM upload is supported)
 - [ ] `docker-compose.yml` with database, backend, and web (M3)
