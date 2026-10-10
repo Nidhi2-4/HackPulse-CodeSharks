@@ -6,9 +6,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signIn, useStore } from "@/lib/store";
 
-// Local demo only: read from .env.local, which is never committed. Empty in any build without it,
-// and then the demo buttons are not shown at all.
-const DEMO_PASSWORDS: Record<string, string> = JSON.parse(process.env.NEXT_PUBLIC_DEMO_LOGINS || "{}");
+// Demo accounts for the hackathon, public on purpose: made-up patients only. The admin creates them
+// from the Admin page and can deactivate them there. Remove this box before real use.
+// The admin account is never listed: a public admin could lock everyone else out.
+const DEMO_PASSWORD = "SarcoScan-Demo-2026";
+const DEMO_ACCOUNTS = [
+  { role: "Doctor", email: "demo.doctor@sarcoscan.local" },
+  { role: "Technician", email: "demo.technician@sarcoscan.local" },
+];
 
 export default function Login() {
   const router = useRouter();
@@ -23,17 +28,21 @@ export default function Login() {
     if (ready && user) router.replace("/dashboard");
   }, [ready, user, router]);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function signInAs(account: string, secret: string) {
     setBusy(true);
     setError("");
     try {
-      await signIn(email.trim(), password);
+      await signIn(account, secret);
       router.replace("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not sign in.");
       setBusy(false);
     }
+  }
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    signInAs(email.trim(), password);
   }
 
   return (
@@ -92,27 +101,32 @@ export default function Login() {
         </button>
       </form>
 
-      {Object.keys(DEMO_PASSWORDS).length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#64748b]">
-          Demo accounts on this machine:
-          {Object.entries(DEMO_PASSWORDS).map(([role, demoPassword]) => (
-            <button
-              key={role}
-              type="button"
-              className="btn-ghost px-2 py-1 text-xs capitalize"
-              onClick={() => {
-                setEmail(`${role}@sarcoscan.local`);
-                setPassword(demoPassword);
-                setError("");
-              }}
-            >
-              {role}
-            </button>
-          ))}
+      <section className="card mt-4 space-y-3 text-sm">
+        <div>
+          <h2 className="font-semibold">Try the demo</h2>
+          <p className="text-xs text-[#64748b]">
+            Sample accounts with made-up patients. Password for both: <code>{DEMO_PASSWORD}</code>
+          </p>
         </div>
-      )}
+        {DEMO_ACCOUNTS.map((account) => (
+          <div key={account.email} className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-medium">{account.role}</p>
+              <p className="truncate text-xs text-[#64748b]">{account.email}</p>
+            </div>
+            <button
+              type="button"
+              className="btn-ghost shrink-0 px-3 py-1 text-xs"
+              disabled={busy}
+              onClick={() => signInAs(account.email, DEMO_PASSWORD)}
+            >
+              Sign in as {account.role.toLowerCase()}
+            </button>
+          </div>
+        ))}
+      </section>
 
-      <section className="mt-6 rounded-xl border border-[#e2e8f0] bg-white p-4 text-sm">
+      <section className="mt-4 rounded-xl border border-[#e2e8f0] bg-white p-4 text-sm">
         <h2 className="font-semibold">Need an account?</h2>
         <p className="mt-1 text-[#64748b]">
           There is no public sign-up, because an account opens patient records. Ask your hospital&apos;s SarcoScan admin:

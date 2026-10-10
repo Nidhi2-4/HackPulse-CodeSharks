@@ -71,5 +71,5 @@ Vercel, the web app:
 ## Before going live
 
 - Change the three seed passwords in the production database.
-- Do not set `NEXT_PUBLIC_DEMO_LOGINS` on Vercel. It puts passwords into the page.
+- The login page shows two public demo accounts (`demo.doctor@` and `demo.technician@sarcoscan.local`, password on the page). Create them once from the Admin page on each database. Before real use: deactivate both and remove the "Try the demo" box from `frontend/web/src/app/login/page.tsx`.
 - The `/demo` page shows made-up numbers. Label it or remove it.
