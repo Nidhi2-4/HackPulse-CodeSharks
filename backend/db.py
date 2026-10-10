@@ -56,8 +56,16 @@ def upgrade_schema() -> None:
             # is not bound by row-level security.
             for table in Base.metadata.tables:
                 connection.execute(text(f'ALTER TABLE "{table}" ENABLE ROW LEVEL SECURITY'))
-        for table, columns in _ADDED_COLUMNS.items():
+        uuid_type = "UUID" if engine.dialect.name == "postgresql" else "CHAR(32)"
+        for table, columns in {**_ADDED_COLUMNS, "patients": {"doctor_id": uuid_type}}.items():
             present = {column["name"] for column in inspect(connection).get_columns(table)}
             for name, kind in columns.items():
                 if name not in present:
                     connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {kind}"))
+        # Each patient belongs to one doctor. Patients a doctor registered before the column existed are theirs.
+        connection.execute(text(
+            "UPDATE patients SET doctor_id = created_by WHERE doctor_id IS NULL"
+            " AND created_by IN (SELECT id FROM users WHERE role = 'doctor')"
+        ))
+        # The technician role is retired; its accounts stay (audit rows point to them) but cannot sign in.
+        connection.execute(text("UPDATE users SET is_active = FALSE WHERE role = 'technician' AND is_active"))

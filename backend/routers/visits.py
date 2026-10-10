@@ -1,4 +1,4 @@
-"""One screening visit: inputs, X-ray, analysis, result, review."""
+"""One screening visit: inputs, X-ray, analysis, result, review. Only the patient's own doctor writes; an admin reads."""
 import json
 import logging
 import time
@@ -45,7 +45,7 @@ from ..schemas import (
     VisitOut,
     XrayOut,
 )
-from ..security import SCREENERS, STAFF, Audit, require_roles
+from ..security import STAFF, Audit, own_patient, own_visit, require_roles
 from ..xray_checks import MAX_UPLOAD_BYTES, file_suffix, quality_problem
 
 router = APIRouter(prefix="/api/v1", tags=["screening"])
@@ -132,10 +132,10 @@ def _stored_name(file_path: str | None) -> str | None:
 def start_visit(
     patient_id: uuid.UUID,
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles(*SCREENERS)),
+    user: User = Depends(require_roles(Role.doctor)),
     audit: Audit = Depends(),
 ):
-    patient = get_or_404(db, Patient, patient_id, "patient")
+    patient = own_patient(db, user, patient_id)
     bmi = round(patient.weight_kg / (patient.height_cm / 100) ** 2, 1)
     visit = Visit(patient_id=patient.id, performed_by=user.id, bmi=bmi)
     db.add(visit)
@@ -152,7 +152,10 @@ def list_visits(
     user: User = Depends(require_roles(*STAFF)),
     audit: Audit = Depends(),
 ):
-    visits = db.scalars(select(Visit).order_by(Visit.visit_date.desc()).limit(limit)).all()
+    query = select(Visit).order_by(Visit.visit_date.desc()).limit(limit)
+    if user.role != Role.admin:
+        query = query.join(Patient, Patient.id == Visit.patient_id).where(Patient.doctor_id == user.id)
+    visits = db.scalars(query).all()
     audit.log(user, "VIEW", "visit_list")
     db.commit()
     # ponytail: several queries per visit. Fine for a clinic's recent list; join them if this page gets slow.
@@ -166,7 +169,7 @@ def get_visit(
     user: User = Depends(require_roles(*STAFF)),
     audit: Audit = Depends(),
 ):
-    visit = get_or_404(db, Visit, visit_id, "visit")
+    visit, _ = own_visit(db, user, visit_id)
     audit.log(user, "VIEW", "visit", visit.id)
     db.commit()
     return visit
@@ -177,10 +180,10 @@ def save_clinical_inputs(
     visit_id: uuid.UUID,
     body: ClinicalIn,
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles(*SCREENERS)),
+    user: User = Depends(require_roles(Role.doctor)),
     audit: Audit = Depends(),
 ):
-    visit = get_or_404(db, Visit, visit_id, "visit")
+    visit, _ = own_visit(db, user, visit_id)
     visit.sarcf_score = body.sarcf_score
     visit.chair_stand_5_sec = body.chair_stand_5_sec
     visit.calf_circumference_cm = body.calf_circumference_cm
@@ -197,10 +200,10 @@ def save_grip(
     visit_id: uuid.UUID,
     body: GripIn,
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles(*SCREENERS)),
+    user: User = Depends(require_roles(Role.doctor)),
     audit: Audit = Depends(),
 ):
-    visit = get_or_404(db, Visit, visit_id, "visit")
+    visit, patient = own_visit(db, user, visit_id)
     if not body.left and not body.right:
         raise HTTPException(422, "Enter at least one grip reading")
     # Sending the readings again replaces the earlier ones for this visit.
@@ -215,7 +218,7 @@ def save_grip(
             )
     audit.log(user, "UPDATE", "visit", visit.id)
     db.commit()
-    return _grip_summary(db, visit, get_or_404(db, Patient, visit.patient_id, "patient"))
+    return _grip_summary(db, visit, patient)
 
 
 @router.post("/visits/{visit_id}/xray", response_model=XrayOut, status_code=status.HTTP_201_CREATED)
@@ -223,10 +226,10 @@ def upload_xray(
     visit_id: uuid.UUID,
     file: UploadFile,
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles(*SCREENERS)),
+    user: User = Depends(require_roles(Role.doctor)),
     audit: Audit = Depends(),
 ):
-    visit = get_or_404(db, Visit, visit_id, "visit")
+    visit, _ = own_visit(db, user, visit_id)
     source = file.file
     source.seek(0, 2)
     if source.tell() > MAX_UPLOAD_BYTES:
@@ -259,11 +262,10 @@ def upload_xray(
 def analyze(
     visit_id: uuid.UUID,
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles(*SCREENERS)),
+    user: User = Depends(require_roles(Role.doctor)),
     audit: Audit = Depends(),
 ):
-    visit = get_or_404(db, Visit, visit_id, "visit")
-    patient = get_or_404(db, Patient, visit.patient_id, "patient")
+    visit, patient = own_visit(db, user, visit_id)
     xray = _latest(db, XrayStudy, XrayStudy.uploaded_at, visit_id=visit.id, qc_passed=True)
     if xray is None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Upload an X-ray that passes the quality check first")
@@ -329,10 +331,10 @@ def get_result(
     user: User = Depends(require_roles(*STAFF)),
     audit: Audit = Depends(),
 ):
-    visit = get_or_404(db, Visit, visit_id, "visit")
+    visit, patient = own_visit(db, user, visit_id)
     audit.log(user, "VIEW", "visit", visit.id)
     db.commit()
-    return _result(db, visit, get_or_404(db, Patient, visit.patient_id, "patient"))
+    return _result(db, visit, patient)
 
 
 @router.post("/visits/{visit_id}/review", response_model=ReviewOut, status_code=status.HTTP_201_CREATED)
@@ -343,7 +345,7 @@ def review(
     user: User = Depends(require_roles(Role.doctor)),
     audit: Audit = Depends(),
 ):
-    visit = get_or_404(db, Visit, visit_id, "visit")
+    visit, _ = own_visit(db, user, visit_id)
     analysis = _latest(db, AnalysisResult, AnalysisResult.created_at, visit_id=visit.id)
     if analysis is None:
         raise HTTPException(status.HTTP_409_CONFLICT, "This visit has no analysis to review yet")
@@ -372,7 +374,7 @@ def history(
     user: User = Depends(require_roles(*STAFF)),
     audit: Audit = Depends(),
 ):
-    patient = get_or_404(db, Patient, patient_id, "patient")
+    patient = own_patient(db, user, patient_id)
     items = []
     # ponytail: a few queries per visit. Fine for one patient's visits; join them if a page ever gets slow.
     for visit in db.scalars(select(Visit).filter_by(patient_id=patient.id).order_by(Visit.visit_date.desc())):
@@ -402,6 +404,7 @@ def xray_image(
     audit: Audit = Depends(),
 ):
     xray = get_or_404(db, XrayStudy, xray_id, "X-ray")
+    own_visit(db, user, xray.visit_id)
     audit.log(user, "VIEW", "xray", xray.id)
     db.commit()
     return FileResponse(storage.path(xray.storage_key), headers=NO_CACHE)
@@ -415,6 +418,7 @@ def xray_overlay(
     audit: Audit = Depends(),
 ):
     xray = get_or_404(db, XrayStudy, xray_id, "X-ray")
+    own_visit(db, user, xray.visit_id)
     analysis = _latest(db, AnalysisResult, AnalysisResult.created_at, xray_id=xray.id)
     if analysis is None or not analysis.overlay_storage_key:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No overlay for this X-ray")

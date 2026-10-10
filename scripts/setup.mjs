@@ -2,7 +2,7 @@
 //   1. Python virtual environment in .venv and the backend's packages
 //   2. The web app's packages
 //   3. A local .env (SQLite, fresh random keys, random seed passwords) if there is none
-//   4. The three seed users
+//   4. The two seed users (admin, doctor)
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, writeFileSync } from "node:fs";
@@ -40,7 +40,7 @@ if (existsSync(envPath)) {
 } else {
   const key = () => randomBytes(32).toString("base64");
   const password = () => randomBytes(9).toString("base64url"); // 12 characters
-  const seeds = { SEED_ADMIN_PASSWORD: password(), SEED_DOCTOR_PASSWORD: password(), SEED_TECHNICIAN_PASSWORD: password() };
+  const seeds = { SEED_ADMIN_PASSWORD: password(), SEED_DOCTOR_PASSWORD: password() };
   const lines = [
     "# Local development, written by `npm run setup`. Everything stays on this machine.",
     "# For hosted values see .env.example and docs/DEPLOY.md. Never commit this file.",
@@ -54,7 +54,7 @@ if (existsSync(envPath)) {
   ];
   writeFileSync(envPath, lines.join("\n") + "\n");
   console.log("\n== Wrote .env for local use. Seed logins (also in .env):");
-  for (const role of ["admin", "doctor", "technician"]) {
+  for (const role of ["admin", "doctor"]) {
     console.log(`   ${role}@sarcoscan.local  ${seeds[`SEED_${role.toUpperCase()}_PASSWORD`]}`);
   }
 }

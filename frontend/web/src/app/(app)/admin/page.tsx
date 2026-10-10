@@ -80,7 +80,6 @@ export default function Admin() {
           <label className="label">
             Role
             <select name="role" required className="input">
-              <option value="technician">Technician</option>
               <option value="doctor">Doctor</option>
               <option value="admin">Admin</option>
             </select>

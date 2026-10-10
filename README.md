@@ -14,8 +14,8 @@ Two things are already done routinely in these hospitals: knee X-rays and handgr
 
 ## What it does
 
-1. A technician registers the patient and enters handgrip strength (3 trials per hand) and optional clinical inputs (SARC-F, 5-chair-stand time, calf circumference).
-2. The technician uploads the knee AP X-ray. The server checks the file and stores it.
+1. A doctor registers the patient and enters handgrip strength (3 trials per hand) and optional clinical inputs (SARC-F, 5-chair-stand time, calf circumference).
+2. The doctor uploads the knee AP X-ray. The server checks the file and stores it.
 3. "Run screening" works out the sarcopenia stage (None / Possible / Probable / Severe). When a model is connected it also gives an osteoporosis risk tier, the soft-tissue-to-bone ratios, and an overlay.
 4. The doctor reviews the result, can override the stage, and downloads a one-page PDF report.
 5. Each patient's visits build a trend over time.
@@ -32,9 +32,8 @@ The claim the project still has to prove is that **X-ray plus grip screens bette
 
 | User | What they do |
 | --- | --- |
-| Technician / nurse | Registers the patient, enters grip, uploads the X-ray, runs the screening |
-| Orthopedic or geriatric doctor | Reviews the result, can override the stage, decides on referral |
-| Hospital admin | Reads the audit log |
+| Orthopedic or geriatric doctor | Registers their patients, enters grip, uploads the X-ray, runs the screening, reviews the result, decides on referral. Sees only their own patients. |
+| Hospital admin | Creates and switches off staff accounts, reads the audit log, can read every patient but change none |
 
 ## How it is built
 
@@ -87,7 +86,7 @@ npm run setup     # once: .venv + Python packages, web packages, a local .env, s
 npm run dev       # API (auto-reload) + web app together; Ctrl+C stops both
 ```
 
-Open http://localhost:3000. `npm run setup` prints the three seed logins (`admin@`, `doctor@`, `technician@sarcoscan.local`); they are also in `.env`.
+Open http://localhost:3000. `npm run setup` prints the two seed logins (`admin@` and `doctor@sarcoscan.local`); they are also in `.env`.
 
 | Command | Does |
 |---|---|

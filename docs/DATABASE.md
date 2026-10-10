@@ -23,7 +23,7 @@ The spec defines 14 tables (pages 14 to 20). The hackathon build has 9 of them; 
 | name | VARCHAR | |
 | email | VARCHAR, UNIQUE | |
 | password_hash | VARCHAR | argon2 |
-| role | ENUM(admin, doctor, technician) | spec also has `patient`; added with patient login |
+| role | ENUM(admin, doctor, technician) | `technician` is retired: kept so old rows load, switched off at startup, cannot be created. Spec also has `patient`, added with patient login |
 | is_active | BOOLEAN | |
 | created_at, last_login_at | TIMESTAMP | |
 
@@ -53,6 +53,7 @@ The spec defines 14 tables (pages 14 to 20). The hackathon build has 9 of them; 
 | consent_given | BOOLEAN | |
 | consent_at | TIMESTAMP | |
 | created_by | UUID, FK to users | |
+| doctor_id | UUID, FK to users, indexed | the patient's doctor; only that doctor sees the record (admin reads all). Empty only for patients a non-doctor registered before 2026-10-10 |
 | created_at | TIMESTAMP | |
 
 ### visits

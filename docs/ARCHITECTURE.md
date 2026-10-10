@@ -1,6 +1,6 @@
 # Architecture
 
-Owner: Anish, reviewed by everyone. Last updated: 2026-10-09.
+Owner: Anish, reviewed by everyone. Last updated: 2026-10-10.
 
 Status: the backend and the web app work together end to end, hosted on Render (API) and Vercel (web app) with the database on Supabase. Four models are connected; the hosted API loads the two body-measurement models only (512 MB free plan, see `DEPLOY.md`).
 
@@ -8,7 +8,7 @@ The spec is `Documentation - SarcoScan (2).pdf` in this folder. Where this file 
 
 ## What the product does
 
-A technician registers a patient, enters handgrip trials and optional clinical inputs, and uploads a knee AP X-ray. The system returns a sarcopenia stage and an osteoporosis risk tier, with an overlay on the X-ray. A doctor reviews the result. It goes into a PDF report and into the patient's history, so later visits show a trend.
+A doctor registers a patient, enters handgrip trials and optional clinical inputs, and uploads a knee AP X-ray. The system returns a sarcopenia stage and an osteoporosis risk tier, with an overlay on the X-ray. The doctor reviews the result; each doctor sees only their own patients. It goes into a PDF report and into the patient's history, so later visits show a trend.
 
 It is a screening and referral tool. It does not replace DEXA and does not prescribe treatment (spec page 1, Non-Goals).
 
@@ -52,7 +52,7 @@ Three rules hold the design together:
 2. **Find or register the patient.** Search by name, phone, or MRN.
 3. **Start a visit.**
 4. **Clinical inputs (optional).** SARC-F score, 5-chair-stand time, calf circumference.
-5. **Handgrip.** Three trials per hand, typed in by the technician. The backend marks the best value and compares it with the AWGS 2019 cutoff: below 28 kg for men, below 18 kg for women.
+5. **Handgrip.** Three trials per hand, typed in by the doctor. The backend marks the best value and compares it with the AWGS 2019 cutoff: below 28 kg for men, below 18 kg for women.
 6. **X-ray upload.** The backend validates the file, saves it under `backend/uploads/`, records it in `xray_studies`, and runs the quality check.
 7. **Analyze.** The backend calls `ml/predict.py` (X-ray) and `ml/tabular.py` (body measurements), saves the overlay image, and stores a row in `analysis_results`.
 8. **Results screen.** Stage, risk tier, overlay, and measured values next to their cutoffs.
@@ -113,4 +113,5 @@ Why Tauri and not Electron for desktop: in Tauri the UI has no Node.js access an
 | 2026-10-04 | Sarcopenia stage comes from AWGS-style rules until labelled data exists | proposed; see `ML.md` |
 | 2026-10-04 | Patient name and phone encrypted in the application; audit log append-only | proposed; Anish owns security, see `SECURITY.md` |
 | 2026-10-04 | Overlay shown as stacked images with a toggle, not as coordinates drawn on a canvas | proposed |
+| 2026-10-10 | Two roles only: doctor and admin. The technician role is dropped; each patient belongs to the doctor who registered them, and an admin reads all patients but changes none | decided by Anish |
 | 2026-10-09 | Hosting for the demo: API on Render (free plan, root directory `backend`), web app on Vercel, database on Supabase | decided by Anish |

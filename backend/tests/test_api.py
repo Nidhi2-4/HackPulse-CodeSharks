@@ -53,15 +53,10 @@ def client():
     Base.metadata.create_all(engine)
     security._login_attempts.clear()
     with SessionLocal() as db:
-        for role in Role:
-            db.add(
-                User(
-                    name=role.value,
-                    email=f"{role.value}@test.local",
-                    password_hash=security.hash_password(PASSWORD),
-                    role=role,
-                )
-            )
+        # Two doctors to check that neither sees the other's patients; a technician from before the role was retired.
+        for name, role in (("admin", Role.admin), ("doctor", Role.doctor), ("doctor2", Role.doctor),
+                           ("technician", Role.technician)):
+            db.add(User(name=name, email=f"{name}@test.local", password_hash=security.hash_password(PASSWORD), role=role))
         db.commit()
     # https, so the client sends the Secure refresh cookie back.
     with TestClient(app, base_url="https://testserver") as test_client:
@@ -75,16 +70,16 @@ def login(client, role):
 
 
 def test_login_sets_a_locked_down_refresh_cookie(client):
-    response = client.post(LOGIN, json={"email": "technician@test.local", "password": PASSWORD})
+    response = client.post(LOGIN, json={"email": "doctor@test.local", "password": PASSWORD})
     cookie = response.headers["set-cookie"].lower()
     for part in ("httponly", "secure", "samesite=strict", "path=/api/v1/auth"):
         assert part in cookie
     headers = {"Authorization": "Bearer " + response.json()["access_token"]}
-    assert client.get("/api/v1/auth/me", headers=headers).json()["role"] == "technician"
+    assert client.get("/api/v1/auth/me", headers=headers).json()["role"] == "doctor"
 
 
 def test_wrong_password_and_unknown_email_look_the_same(client):
-    wrong = client.post(LOGIN, json={"email": "technician@test.local", "password": "nope"})
+    wrong = client.post(LOGIN, json={"email": "doctor@test.local", "password": "nope"})
     unknown = client.post(LOGIN, json={"email": "nobody@test.local", "password": "nope"})
     assert wrong.status_code == unknown.status_code == 401
     assert wrong.json() == unknown.json()
@@ -114,13 +109,12 @@ def test_logout_revokes_the_refresh_token(client):
 
 def test_only_admin_reads_the_audit_log(client):
     assert client.get("/api/v1/audit-logs").status_code == 401
-    assert client.get("/api/v1/audit-logs", headers=login(client, "technician")).status_code == 403
     assert client.get("/api/v1/audit-logs", headers=login(client, "doctor")).status_code == 403
     assert client.get("/api/v1/audit-logs", headers=login(client, "admin")).status_code == 200
 
 
 def test_patient_is_encrypted_at_rest_and_still_searchable(client):
-    headers = login(client, "technician")
+    headers = login(client, "doctor")
     created = client.post("/api/v1/patients", json=PATIENT, headers=headers)
     assert created.status_code == 201, created.text
     assert created.json()["name"] == "Kamala Deshpande"
@@ -145,7 +139,7 @@ def test_consent_is_required(client):
 
 
 def test_audit_log_records_ids_not_names(client):
-    headers = login(client, "technician")
+    headers = login(client, "doctor")
     patient_id = client.post("/api/v1/patients", json=PATIENT, headers=headers).json()["id"]
     client.get(f"/api/v1/patients/{patient_id}", headers=headers)
 
@@ -172,22 +166,22 @@ def test_sarcopenia_stage_rule():
 
 
 def test_screening_flow_from_visit_to_review(client, monkeypatch):
-    technician = login(client, "technician")
-    patient_id = client.post("/api/v1/patients", json=PATIENT, headers=technician).json()["id"]
-    visit = client.post(f"/api/v1/patients/{patient_id}/visits", headers=technician).json()
+    doctor = login(client, "doctor")
+    patient_id = client.post("/api/v1/patients", json=PATIENT, headers=doctor).json()["id"]
+    visit = client.post(f"/api/v1/patients/{patient_id}/visits", headers=doctor).json()
     assert visit["bmi"] == 21.4
     base = f"/api/v1/visits/{visit['id']}"
 
     def upload(content):
-        return client.post(f"{base}/xray", files={"file": ("knee.png", content, "image/png")}, headers=technician)
+        return client.post(f"{base}/xray", files={"file": ("knee.png", content, "image/png")}, headers=doctor)
 
-    assert client.post(f"{base}/analyze", headers=technician).status_code == 409  # no X-ray yet
+    assert client.post(f"{base}/analyze", headers=doctor).status_code == 409  # no X-ray yet
     bad_history = {"sarcf_score": 5, "history": {"owns_a_cat": True}}
-    assert client.post(f"{base}/clinical-inputs", json=bad_history, headers=technician).status_code == 422
+    assert client.post(f"{base}/clinical-inputs", json=bad_history, headers=doctor).status_code == 422
     inputs = {"sarcf_score": 5, "chair_stand_5_sec": 10.6, "waist_cm": 78, "history": {"steroid_use": True}}
-    assert client.post(f"{base}/clinical-inputs", json=inputs, headers=technician).status_code == 200
+    assert client.post(f"{base}/clinical-inputs", json=inputs, headers=doctor).status_code == 200
     readings = {"left": [15.2, 15.8, 15.5], "right": [16.0, 16.4, 16.1]}
-    grip = client.post(f"{base}/grip", json=readings, headers=technician).json()
+    grip = client.post(f"{base}/grip", json=readings, headers=doctor).json()
     assert grip == {"best_left": 15.8, "best_right": 16.4, "best_kg": 16.4, "cutoff_kg": 18.0, "low": True}
 
     assert upload(b"not an image at all").status_code == 415
@@ -197,7 +191,7 @@ def test_screening_flow_from_visit_to_review(client, monkeypatch):
         buffer = io.BytesIO()
         not_an_xray.save(buffer, format="PNG")
         assert upload(buffer.getvalue()).json()["qc_passed"] is False
-    assert client.post(f"{base}/analyze", headers=technician).status_code == 409  # only a failed image so far
+    assert client.post(f"{base}/analyze", headers=doctor).status_code == 409  # only a failed image so far
     good_bytes = png()
     xray = upload(good_bytes).json()
     assert xray["qc_passed"] is True
@@ -206,26 +200,26 @@ def test_screening_flow_from_visit_to_review(client, monkeypatch):
     seen = {}
     fake = {"low_muscle": True, "low_muscle_prob": 0.9, "bone_loss": True, "bone_loss_prob": 0.7}
     monkeypatch.setattr("backend.routers.visits.run_tabular_models", lambda *a: seen.update(args=a) or fake)
-    with_models = client.post(f"{base}/analyze", headers=technician).json()
+    with_models = client.post(f"{base}/analyze", headers=doctor).json()
     assert with_models["sarcopenia_stage"] == "probable" and with_models["low_muscle"] is True
     assert with_models["bone_loss"] is True and with_models["bone_loss_prob"] == 0.7
     assert seen["args"][5:] == (78, None, 15.8, 16.4, {"steroid_use": True})  # waist, arm, grips, history
     monkeypatch.undo()
 
-    result = client.post(f"{base}/analyze", headers=technician).json()
+    result = client.post(f"{base}/analyze", headers=doctor).json()
     assert result["sarcopenia_stage"] == "possible"  # low grip, and no muscle evidence without the models
     assert result["low_muscle"] is None and result["history"] == {"steroid_use": True}
     assert result["model_connected"] is False and result["osteoporosis_tier"] is None
     assert result["sarcf_positive"] is True and result["chair_stand_slow"] is False
 
     image_url = f"/api/v1/xrays/{xray['id']}/image"
-    assert client.get(image_url, headers=technician).content == good_bytes
+    assert client.get(image_url, headers=doctor).content == good_bytes
     assert client.get(image_url).status_code == 401
-    assert client.get(f"/api/v1/xrays/{xray['id']}/overlay", headers=technician).status_code == 404
+    assert client.get(f"/api/v1/xrays/{xray['id']}/overlay", headers=doctor).status_code == 404
 
     decision = {"agrees_with_ai": False, "final_stage": "probable", "notes": "Refer for DEXA."}
-    assert client.post(f"{base}/review", json=decision, headers=technician).status_code == 403
-    doctor = login(client, "doctor")
+    admin = login(client, "admin")
+    assert client.post(f"{base}/review", json=decision, headers=admin).status_code == 403  # admin only reads
     assert client.post(f"{base}/review", json=decision, headers=doctor).status_code == 201
     final = client.get(f"{base}/result", headers=doctor).json()
     assert final["status"] == "reviewed"
@@ -237,14 +231,25 @@ def test_screening_flow_from_visit_to_review(client, monkeypatch):
     ]
     visits = client.get("/api/v1/visits", headers=doctor).json()
     assert [(v["visit_id"], v["performed_by_name"], v["reviewed_by_name"]) for v in visits] == [
-        (visit["id"], "technician", "doctor")
+        (visit["id"], "doctor", "doctor")
     ]
     assert client.head("/api/v1/ping").status_code == 200 and client.get("/api/v1/ping").json() == {"status": "ok"}
     assert client.get("/api/v1/health").json() == {
         "status": "ok", "model_connected": False, "tabular_connected": False,
     }
-    admin = login(client, "admin")
     assert client.post(f"/api/v1/patients/{patient_id}/visits", headers=admin).status_code == 403
+    assert client.post("/api/v1/patients", json={**PATIENT, "mrn": "MRN-9"}, headers=admin).status_code == 403
+    assert client.get(f"{base}/result", headers=admin).status_code == 200  # but may read every patient
+    assert [p["id"] for p in client.get("/api/v1/patients", headers=admin).json()] == [patient_id]
+
+    # Another doctor cannot see this patient at all: same answer as for a patient that does not exist.
+    other = login(client, "doctor2")
+    assert client.get("/api/v1/patients", headers=other).json() == []
+    assert client.get("/api/v1/visits", headers=other).json() == []
+    for url in (f"/api/v1/patients/{patient_id}", f"/api/v1/patients/{patient_id}/history", f"{base}/result", image_url):
+        assert client.get(url, headers=other).status_code == 404, url
+    assert client.post(f"{base}/grip", json=readings, headers=other).status_code == 404
+    assert client.post(f"/api/v1/patients/{patient_id}/visits", headers=other).status_code == 404
 
 
 def test_login_is_rate_limited(client):
@@ -268,19 +273,20 @@ def test_client_ip_trusts_only_the_local_proxy():
 
 
 def test_only_admin_manages_users(client):
-    new = {"name": "New Nurse", "email": "Nurse@Test.local", "role": "technician", "password": "a-long-password"}
+    new = {"name": "New Doctor", "email": "Doc@Test.local", "role": "doctor", "password": "a-long-password"}
     assert client.post("/api/v1/users", json=new, headers=login(client, "doctor")).status_code == 403
-    assert client.get("/api/v1/users", headers=login(client, "technician")).status_code == 403
+    assert client.get("/api/v1/users", headers=login(client, "doctor")).status_code == 403
     assert client.post("/api/v1/users", json=new).status_code == 401  # no public sign-up
 
     admin = login(client, "admin")
     assert client.post("/api/v1/users", json={**new, "password": "short"}, headers=admin).status_code == 422
+    assert client.post("/api/v1/users", json={**new, "role": "technician"}, headers=admin).status_code == 422  # retired
     created = client.post("/api/v1/users", json=new, headers=admin)
-    assert created.status_code == 201 and created.json()["email"] == "nurse@test.local"
+    assert created.status_code == 201 and created.json()["email"] == "doc@test.local"
     assert "password" not in created.text
     assert client.post("/api/v1/users", json=new, headers=admin).status_code == 409
 
-    credentials = {"email": "nurse@test.local", "password": "a-long-password"}
+    credentials = {"email": "doc@test.local", "password": "a-long-password"}
     assert client.post(LOGIN, json=credentials).status_code == 200
     user_id = created.json()["id"]
     assert client.patch(f"/api/v1/users/{user_id}", json={"is_active": False}, headers=admin).status_code == 200
@@ -288,3 +294,7 @@ def test_only_admin_manages_users(client):
 
     me = next(u for u in client.get("/api/v1/users", headers=admin).json() if u["role"] == "admin")
     assert client.patch(f"/api/v1/users/{me['id']}", json={"is_active": False}, headers=admin).status_code == 409
+
+
+def test_retired_technician_cannot_sign_in(client):
+    assert client.post(LOGIN, json={"email": "technician@test.local", "password": PASSWORD}).status_code == 401

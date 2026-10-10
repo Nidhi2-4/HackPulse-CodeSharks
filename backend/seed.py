@@ -1,4 +1,4 @@
-"""Create the first admin, doctor and technician. Run from the repo root: python -m backend.seed"""
+"""Create the first admin and doctor. Run from the repo root: python -m backend.seed"""
 import os
 
 from sqlalchemy import select
@@ -10,7 +10,6 @@ from .security import hash_password
 USERS = (
     ("Sunita Nair", "admin@sarcoscan.local", Role.admin, "SEED_ADMIN_PASSWORD"),
     ("Dr. Arvind Rao", "doctor@sarcoscan.local", Role.doctor, "SEED_DOCTOR_PASSWORD"),
-    ("Meena Kulkarni", "technician@sarcoscan.local", Role.technician, "SEED_TECHNICIAN_PASSWORD"),
 )
 
 

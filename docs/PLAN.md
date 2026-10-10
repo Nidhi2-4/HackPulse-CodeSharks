@@ -1,6 +1,6 @@
 # Plan
 
-Owner: everyone. Last updated: 2026-10-09.
+Owner: everyone. Last updated: 2026-10-10.
 
 This is the task list. Tick a box when the thing works, not when it is started. Update it in the same commit as the work.
 
@@ -36,7 +36,7 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 - [x] `.env.example` written
 - [x] The 9 tables in `DATABASE.md`
 - [x] Auth: argon2, login, refresh with rotation, logout, me
-- [x] Seed script: one admin, one doctor, one technician
+- [x] Seed script: one admin, one doctor
 - [x] Shared role dependency and audit dependency
 - [x] Patient endpoints
 - [x] Visit, clinical inputs, and grip endpoints
@@ -52,6 +52,7 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 - [x] One-command setup and run from the repo root (`npm run setup`, `npm run dev`, `npm start`); `npm run check` runs the CI checks locally
 - [x] API hosted on Render (root directory `backend`, the two measurement models loaded), web app on Vercel
 - [x] Row-level security on every table, so Supabase's REST API gives the anon key nothing
+- [x] Doctor and admin only; each doctor sees only their own patients, admin reads all (technician role retired)
 - [ ] Cloudinary copies of X-rays made private (`SECURITY.md` checklist item 17)
 - [ ] DICOM uploads converted to PNG (only if DICOM upload is supported)
 - [ ] `docker-compose.yml` with database, backend, and web (M3)

@@ -15,11 +15,11 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from .config import settings
-from .db import get_db
-from .models import AuditLog, RefreshToken, Role, User, now
+from .db import get_db, get_or_404
+from .models import AuditLog, Patient, RefreshToken, Role, User, Visit, now
 
-STAFF = (Role.technician, Role.doctor, Role.admin)
-SCREENERS = (Role.technician, Role.doctor)
+# Who may read patient data. Only a doctor writes it, and only for their own patients (see own_patient).
+STAFF = (Role.doctor, Role.admin)
 
 _hasher = PasswordHasher()
 # Checked when the email is unknown, so a wrong email takes as long as a wrong password.
@@ -87,6 +87,24 @@ def require_roles(*roles: Role):
         return user
 
     return check
+
+
+def own_patient(db: Session, user: User, patient_id: uuid.UUID) -> Patient:
+    """The patient, if this user may see them: their own doctor, or an admin (read only).
+    Anyone else gets the same 404 as for a missing patient, so other doctors' patients stay invisible."""
+    patient = get_or_404(db, Patient, patient_id, "patient")
+    if user.role != Role.admin and patient.doctor_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such patient")
+    return patient
+
+
+def own_visit(db: Session, user: User, visit_id: uuid.UUID) -> tuple[Visit, Patient]:
+    """The visit and its patient, under the same rule as own_patient."""
+    visit = get_or_404(db, Visit, visit_id, "visit")
+    try:
+        return visit, own_patient(db, user, visit.patient_id)
+    except HTTPException:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such visit") from None
 
 
 def _token_hash(token: str) -> str:

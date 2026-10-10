@@ -1,4 +1,4 @@
-"""Register, list, search and open patients."""
+"""Register, list, search and open patients. A doctor sees only their own patients; an admin reads all."""
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -6,10 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..crypto import phone_hash
-from ..db import get_db, get_or_404
-from ..models import Patient, User, now
+from ..db import get_db
+from ..models import Patient, Role, User, now
 from ..schemas import PatientIn, PatientOut
-from ..security import STAFF, Audit, require_roles
+from ..security import STAFF, Audit, own_patient, require_roles
 
 router = APIRouter(prefix="/api/v1/patients", tags=["patients"])
 
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/v1/patients", tags=["patients"])
 def register_patient(
     body: PatientIn,
     db: Session = Depends(get_db),
-    user: User = Depends(require_roles(*STAFF)),
+    user: User = Depends(require_roles(Role.doctor)),
     audit: Audit = Depends(),
 ):
     if not body.consent_given:
@@ -30,6 +30,7 @@ def register_patient(
         phone_hash=phone_hash(body.phone) if body.phone else None,
         consent_at=now(),
         created_by=user.id,
+        doctor_id=user.id,
     )
     db.add(patient)
     db.flush()
@@ -45,7 +46,10 @@ def list_patients(
     user: User = Depends(require_roles(*STAFF)),
     audit: Audit = Depends(),
 ):
-    patients = db.scalars(select(Patient).order_by(Patient.created_at.desc())).all()
+    query = select(Patient).order_by(Patient.created_at.desc())
+    if user.role != Role.admin:
+        query = query.where(Patient.doctor_id == user.id)
+    patients = db.scalars(query).all()
     needle = q.strip().lower()
     if needle:
         # ponytail: names are encrypted, so they are matched here after decryption, row by row.
@@ -66,7 +70,7 @@ def get_patient(
     user: User = Depends(require_roles(*STAFF)),
     audit: Audit = Depends(),
 ):
-    patient = get_or_404(db, Patient, patient_id, "patient")
+    patient = own_patient(db, user, patient_id)
     audit.log(user, "VIEW", "patient", patient.id)
     db.commit()
     return patient

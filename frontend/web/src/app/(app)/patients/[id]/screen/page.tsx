@@ -41,7 +41,7 @@ export default function ScreeningWizard() {
   const [result, setResult] = useState<Screening | null>(null);
 
   if (!patient) return <p>Patient not found.</p>;
-  if (user?.role === "admin") return <p>Screenings are run by technicians and doctors.</p>;
+  if (user?.role === "admin") return <p>Screenings are run by the patient&apos;s doctor. Admins can read results but not change them.</p>;
 
   const next = (e: React.FormEvent) => {
     e.preventDefault();

@@ -42,7 +42,7 @@ export default function Login() {
       <div className="mb-6 flex flex-col items-center gap-2 text-center">
         <Image src="/logo-mark.png" alt="" width={40} height={50} priority />
         <h1 className="h1">Sign in to SarcoScan</h1>
-        <p className="text-sm text-[#64748b]">For clinic staff: technicians, doctors and admins.</p>
+        <p className="text-sm text-[#64748b]">For doctors and hospital admins.</p>
       </div>
 
       <form onSubmit={submit} className="card space-y-4">
@@ -112,7 +112,7 @@ export default function Login() {
               disabled={busy}
               onClick={() => signInAs(account.email, DEMO_PASSWORD)}
             >
-              Sign in as {account.role}
+              Sign in as {account.label}
             </button>
           </div>
         ))}

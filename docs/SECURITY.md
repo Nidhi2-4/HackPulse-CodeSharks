@@ -15,7 +15,7 @@ So the backend must do four things on every request: know who is calling, check 
 - Hash passwords with argon2 (for example the `argon2-cffi` or `pwdlib` package). Never store, log, or return a plain password.
 - Rate-limit `/auth/login`, for example 5 attempts per minute per IP address. This slows password guessing.
 - Give the same error for "no such email" and "wrong password", so the login form does not reveal which emails exist.
-- A seed script creates the first admin, doctor, and technician. Their passwords come from `.env`, not from the code.
+- A seed script creates the first admin and doctor. Their passwords come from `.env`, not from the code.
 
 ## 2. Tokens
 
@@ -46,17 +46,21 @@ Serve the UI and the API from the same origin: the web app forwards `/api` to th
 
 ## 4. Roles
 
-The server checks the role on every endpoint with one shared dependency. From the spec (page 21):
+The server checks the role on every endpoint with one shared dependency. Two roles since 2026-10-10 (the spec, page 21, also has a technician; the team dropped it because the doctor does the whole screening):
 
-| Action | Technician | Doctor | Admin | Patient |
-|---|---|---|---|---|
-| Register patient | Yes | Yes | Yes | No |
-| Run screening | Yes | Yes | No | No |
-| View results | Yes | Yes | Yes | Own only |
-| Override or review | No | Yes | No | No |
-| Generate report | Yes | Yes | No | No |
-| Manage users and devices | No | No | Yes | No |
-| View audit logs | No | No | Yes | No |
+| Action | Doctor | Admin | Patient |
+|---|---|---|---|
+| Register patient | Yes, becomes that patient's doctor | No | No |
+| Run screening | Own patients only | No | No |
+| View results | Own patients only | All patients, read only | Own only (later) |
+| Override or review | Own patients only | No | No |
+| Generate report | Own patients only | No | No |
+| Manage users and devices | No | Yes | No |
+| View audit logs | No | Yes | No |
+
+**Each patient belongs to one doctor** (`patients.doctor_id`, set to the doctor who registers them). `own_patient` and `own_visit` in `backend/security.py` enforce it on every patient, visit, result and X-ray endpoint. Another doctor gets the same 404 as for a patient that does not exist, so they cannot even learn the patient is there. Lists return only the doctor's own patients and visits.
+
+Old technician accounts stay in the database, because audit rows point to them, but are switched off at every startup and can no longer be created.
 
 The role comes from the verified access token, never from the request body or a query parameter. The UI may hide buttons a role cannot use, but that is for convenience only.
 
@@ -205,4 +209,5 @@ Say these openly if a judge asks. They are in the spec but not in the hackathon 
 | 17 | Cloud copies of X-rays are private, with signed links | done for the upload: `backend/storage.py` uploads with type `authenticated`, so no public URL exists. Not exercised against a real Cloudinary account. The app never serves from Cloudinary; images are read from local disk through the authenticated endpoints. |
 | 18 | The web app loads no third-party script at run time | done. A Tailwind CDN script tag was removed; styles are compiled at build time. |
 | 19 | No patient data in browser storage | done. The earlier localStorage store was replaced by calls to the backend. |
+| 21 | A doctor sees only their own patients; admin reads all, writes none | done. Tested: a second doctor gets 404 on the first doctor's patient, visit, result, X-ray and history, and empty lists. |
 | 20 | Supabase's REST API cannot reach the tables (row-level security on, no policies) | done. On 2026-10-10, after the deploy, the anon key saw 0 rows in `users`, `patients`, `audit_logs` and `refresh_tokens`, and the API kept working. |

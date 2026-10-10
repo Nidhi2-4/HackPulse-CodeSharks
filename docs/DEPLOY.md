@@ -1,6 +1,6 @@
 # Deploying
 
-Owner: Anish. Last updated: 2026-10-09.
+Owner: Anish. Last updated: 2026-10-10.
 
 Status: the API is live on Render at https://hackpulse-codesharks.onrender.com and the web app on Vercel. On 2026-10-04 one full screening was run against the API with all four models: same result as on the laptop, 45 seconds there (about 0.3 on the laptop). The free plan's memory does not hold all four, so the API now runs with `SARCOSCAN_MODELS=tabular`; on 2026-10-09 `/api/v1/health` answered `"model_connected": false, "tabular_connected": true`.
 
@@ -70,6 +70,6 @@ Vercel, the web app:
 
 ## Before going live
 
-- Change the three seed passwords in the production database.
-- The login page shows two public demo accounts (`demo.doctor@` and `demo.technician@sarcoscan.local`, password on the page). Create them once from the Admin page on each database. Before real use: deactivate both and remove the "Try the demo" box from `frontend/web/src/app/login/page.tsx`.
+- Change the two seed passwords in the production database.
+- The login page shows two public demo accounts (`demo.doctor.a@` and `demo.doctor.b@sarcoscan.local`, password on the page). Create them once on each database with the Admin page's "Create the demo accounts" button. Before real use: deactivate both and remove the "Try the demo" box from `frontend/web/src/app/login/page.tsx`.
 - The `/demo` page shows made-up numbers. Label it or remove it.

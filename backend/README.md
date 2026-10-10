@@ -25,7 +25,7 @@ backend/
 │   ├── patients.py    register, list and search, details
 │   ├── visits.py      visit, inputs, grip, X-ray, analyze, result, review, history, files
 │   └── admin.py       audit log, staff accounts
-├── seed.py            creates the first admin, doctor, and technician
+├── seed.py            creates the first admin and doctor
 ├── tests/test_api.py
 ├── requirements.txt   the only Python package list
 ├── package.json       build and start commands for Render (its root directory is backend/)
@@ -57,7 +57,7 @@ Two settings files, both ignored by git:
 
 The two files have different encryption keys, so a patient saved in one database cannot be read with the other file.
 
-Seed logins: `admin@sarcoscan.local`, `doctor@sarcoscan.local`, `technician@sarcoscan.local`.
+Seed logins: `admin@sarcoscan.local`, `doctor@sarcoscan.local`.
 
 ## Tests
 
