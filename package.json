@@ -10,6 +10,7 @@
     "lint": "npm --prefix frontend/web run lint",
     "test": "node scripts/run.mjs test",
     "seed": "node scripts/run.mjs seed",
+    "seed:demo": "node scripts/run.mjs seed --demo",
     "check": "npm run test && npm run lint && npm run build"
   },
   "engines": {

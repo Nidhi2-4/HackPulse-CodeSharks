@@ -71,5 +71,5 @@ Vercel, the web app:
 ## Before going live
 
 - Change the two seed passwords in the production database.
-- The login page shows one public demo doctor (`demo@doctor.com`, password on the page). Create it once on each database: the Admin page's "Create the demo account" button, or from a laptop `npm run seed -- --demo` with `ENV_FILE=.env.prod` set. Before real use: deactivate it and remove the "Try the demo" box from `frontend/web/src/app/login/page.tsx`.
+- The login page shows one public demo doctor (`demo@doctor.com`, password on the page). Create it once on each database: the Admin page's "Create the demo account" button, or from a laptop `npm run seed:demo` with `ENV_FILE=.env.prod` set. Before real use: deactivate it and remove the "Try the demo" box from `frontend/web/src/app/login/page.tsx`.
 - The `/demo` page shows made-up numbers. Label it or remove it.
