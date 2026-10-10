@@ -29,7 +29,7 @@ export default function ScreeningWizard() {
   // One answer per SARC-F question; "" until it is asked. The score exists only when all five are answered.
   const [sarc, setSarc] = useState(["", "", "", "", ""]);
   const sarcScore = sarc.every((a) => a !== "") ? sarc.reduce((sum, a) => sum + Number(a), 0) : undefined;
-  // null until the technician says the history was asked; then every unticked box means no.
+  // null until the doctor says the history was asked; then every unticked box means no.
   const [history, setHistory] = useState<Record<string, boolean> | null>(null);
   const [grip, setGrip] = useState({ right: ["", "", ""], left: ["", "", ""] });
   const [file, setFile] = useState<File | null>(null);

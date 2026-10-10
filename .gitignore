@@ -19,6 +19,8 @@ credentials.json
 client_secret*.json
 service_account*.json
 token.json
+# Anish's notes of the live credentials (database, Cloudinary, seed passwords)
+cred.md
 
 # --- Patient data and medical images ---
 *.dcm

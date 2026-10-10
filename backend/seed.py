@@ -20,8 +20,8 @@ def main() -> None:
             if db.scalar(select(User.id).where(User.email == email)):
                 continue
             password = os.environ.get(variable, "")
-            if len(password) < 10:
-                raise SystemExit(f"{variable} must be set in .env and be at least 10 characters long.")
+            if len(password) < 8:
+                raise SystemExit(f"{variable} must be set in .env and be at least 8 characters long.")
             db.add(User(name=name, email=email, password_hash=hash_password(password), role=role))
         db.commit()
     print("Seed users are ready.")

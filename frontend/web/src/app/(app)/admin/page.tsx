@@ -59,7 +59,7 @@ export default function Admin() {
           can use them, so keep only made-up patients here, and deactivate them below before real use.
         </p>
         <button type="button" className="btn" disabled={busy} onClick={addDemoAccounts}>
-          Create the demo accounts
+          Create the demo account
         </button>
       </section>
 
@@ -85,8 +85,8 @@ export default function Admin() {
             </select>
           </label>
           <label className="label">
-            First password (10 or more characters)
-            <input name="password" type="text" required minLength={10} maxLength={200} autoComplete="off" className="input" />
+            First password (8 or more characters)
+            <input name="password" type="text" required minLength={8} maxLength={200} autoComplete="off" className="input" />
           </label>
           <button className="btn" disabled={busy}>
             Create account

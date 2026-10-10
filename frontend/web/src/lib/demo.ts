@@ -1,10 +1,8 @@
-// Demo accounts for the hackathon, public on purpose: made-up patients only. The login page lists
-// them; the Admin page creates them in one click and can deactivate them. Remove before real use.
-// Two doctors, so the demo shows that each doctor sees only their own patients.
+// The demo doctor for the hackathon, public on purpose: made-up patients only. The login page lists
+// it; the Admin page creates it in one click and can deactivate it. Remove before real use.
 // No admin account here: a public admin could lock everyone else out.
-export const DEMO_PASSWORD = "SarcoScan-Demo-2026";
+export const DEMO_PASSWORD = "demo@123";
 
 export const DEMO_ACCOUNTS = [
-  { name: "Demo Doctor A", role: "doctor", label: "Doctor A", email: "demo.doctor.a@sarcoscan.local" },
-  { name: "Demo Doctor B", role: "doctor", label: "Doctor B", email: "demo.doctor.b@sarcoscan.local" },
+  { name: "Demo Doctor", role: "doctor", label: "Doctor", email: "demo@doctor.com" },
 ] as const;

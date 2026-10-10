@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { api, login, logout, refresh } from "./api";
 
-export type Role = "admin" | "doctor" | "technician";
+export type Role = "admin" | "doctor";
 export type Sex = "M" | "F" | "O";
 export type Stage = "none" | "possible" | "probable" | "severe";
 export type Tier = "low" | "moderate" | "high";

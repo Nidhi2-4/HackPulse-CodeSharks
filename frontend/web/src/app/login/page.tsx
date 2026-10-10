@@ -97,7 +97,7 @@ export default function Login() {
         <div>
           <h2 className="font-semibold">Try the demo</h2>
           <p className="text-xs text-[#64748b]">
-            Sample accounts with made-up patients. Password for both: <code>{DEMO_PASSWORD}</code>
+            A sample doctor account with made-up patients. Password: <code>{DEMO_PASSWORD}</code>
           </p>
         </div>
         {DEMO_ACCOUNTS.map((account) => (
