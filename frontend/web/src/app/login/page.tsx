@@ -4,16 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/demo";
 import { signIn, useStore } from "@/lib/store";
-
-// Demo accounts for the hackathon, public on purpose: made-up patients only. The admin creates them
-// from the Admin page and can deactivate them there. Remove this box before real use.
-// The admin account is never listed: a public admin could lock everyone else out.
-const DEMO_PASSWORD = "SarcoScan-Demo-2026";
-const DEMO_ACCOUNTS = [
-  { role: "Doctor", email: "demo.doctor@sarcoscan.local" },
-  { role: "Technician", email: "demo.technician@sarcoscan.local" },
-];
 
 export default function Login() {
   const router = useRouter();
@@ -111,7 +103,7 @@ export default function Login() {
         {DEMO_ACCOUNTS.map((account) => (
           <div key={account.email} className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="font-medium">{account.role}</p>
+              <p className="font-medium">{account.label}</p>
               <p className="break-all text-xs text-[#64748b]">{account.email}</p>
             </div>
             <button
@@ -120,7 +112,7 @@ export default function Login() {
               disabled={busy}
               onClick={() => signInAs(account.email, DEMO_PASSWORD)}
             >
-              Sign in as {account.role.toLowerCase()}
+              Sign in as {account.role}
             </button>
           </div>
         ))}

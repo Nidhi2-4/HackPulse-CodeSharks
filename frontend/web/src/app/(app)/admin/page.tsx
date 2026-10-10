@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/demo";
 import { createStaff, setStaffActive, useStore, type Role } from "@/lib/store";
 
 export default function Admin() {
@@ -38,10 +39,29 @@ export default function Admin() {
     }, `Account created for ${email}.`);
   }
 
+  function addDemoAccounts() {
+    run(async () => {
+      for (const account of DEMO_ACCOUNTS) {
+        if (staff.some((s) => s.email === account.email)) continue; // already made
+        await createStaff({ name: account.name, email: account.email, role: account.role, password: DEMO_PASSWORD });
+      }
+    }, "Demo accounts are ready. Use the buttons on the sign-in page.");
+  }
+
   return (
     <>
       <h1 className="h1">Admin</h1>
 
+      <section className="card space-y-3">
+        <h2 className="h2">Demo accounts</h2>
+        <p className="text-sm text-[#64748b]">
+          Creates {DEMO_ACCOUNTS.map((a) => a.email).join(" and ")} with the password shown on the sign-in page. Anyone
+          can use them, so keep only made-up patients here, and deactivate them below before real use.
+        </p>
+        <button type="button" className="btn" disabled={busy} onClick={addDemoAccounts}>
+          Create the demo accounts
+        </button>
+      </section>
 
       <section className="card space-y-4">
         <h2 className="h2">Staff accounts</h2>
