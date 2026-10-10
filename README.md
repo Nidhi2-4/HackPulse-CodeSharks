@@ -44,7 +44,7 @@ Browser (desktop or phone)
         |
   FastAPI backend  (backend)           login, roles, encryption, audit log, screening rules
     |          |             |
- Database    uploads/     ml/  predict.py (X-ray models), tabular.py, muscle.py
+ Database    X-ray files  ml/  predict.py (X-ray models), tabular.py, muscle.py
  SQLite locally, PostgreSQL (Supabase) when hosted
 ```
 
@@ -55,7 +55,7 @@ Where it runs:
 | Web app | http://localhost:3000 | Vercel (`frontend/web`) |
 | API | http://127.0.0.1:8000 | Render (root directory `backend`, `render.yaml`) |
 | Database | `sarcoscan.db` (SQLite file) | Supabase PostgreSQL |
-| Files | `backend/uploads/` | service disk, optional private Cloudinary copy |
+| Files | `backend/uploads/` | Cloudinary only, private (nothing on the server's disk) |
 
 Steps and limits for hosting are in [docs/DEPLOY.md](docs/DEPLOY.md).
 

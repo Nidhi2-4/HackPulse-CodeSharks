@@ -17,7 +17,7 @@ Locally the whole stack starts with `npm run dev` (see the root README). Hosted,
 | API | Render web service `sarcoscan-api`, root directory `backend` | `npm start` starts uvicorn on `$PORT` |
 | Web app | Vercel project, root directory `frontend/web` | Next.js; forwards `/api` to the API, so the browser sees one origin |
 | Database | Supabase | the `DATABASE_URL` in `.env.prod` |
-| X-ray files | the API's own disk, plus a private Cloudinary copy when `CLOUDINARY_URL` is set | the disk copy is lost on every redeploy and restart on the free plan |
+| X-ray files | Cloudinary only, as private "authenticated" images | nothing is kept on the API's disk; the API refuses to start if `CLOUDINARY_URL` is missing |
 
 ## Steps
 
@@ -64,7 +64,7 @@ Vercel, the web app:
 
   So all four do not fit in 512 MB, `xray` is at the edge, and `tabular` fits with room to spare.
 - **Sleep.** A free service sleeps after 15 minutes without a request. The next request waits about a minute. An uptime monitor (UptimeRobot, every 5 minutes) pointed at `/api/v1/ping` keeps it awake.
-- **Files.** Uploaded X-rays and overlays live on the service's disk and disappear on restart. The Cloudinary copy is a backup; the app does not read from it. Results stay in the database; the image then shows "could not be loaded".
+- **Files.** X-rays and overlays live only on Cloudinary, so restarts and redeploys lose nothing. The API fetches them with a signed link and passes them to the browser; the model gets a temporary copy that is deleted after the analysis. Images uploaded before 2026-10-10 were on the disk and are gone; their results still show, the image shows "could not be loaded".
 - **Login rate limit.** Behind Render the API sees Render's proxy address, not the browser's, so the 5-a-minute limit is shared by everyone. Fine for a demo.
 - **Upload size.** Requests pass through Vercel to the API. Keep X-rays to a few MB.
 

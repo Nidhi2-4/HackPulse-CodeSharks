@@ -53,7 +53,7 @@ Ticked items pass the tests in `backend/tests/` on SQLite.
 - [x] API hosted on Render (root directory `backend`, the two measurement models loaded), web app on Vercel
 - [x] Row-level security on every table, so Supabase's REST API gives the anon key nothing
 - [x] Doctor and admin only; each doctor sees only their own patients, admin reads all (technician role retired)
-- [ ] Cloudinary copies of X-rays made private (`SECURITY.md` checklist item 17)
+- [ ] Hosted X-rays only on Cloudinary, private, nothing on disk (code done; check on the live site, `SECURITY.md` item 17)
 - [ ] DICOM uploads converted to PNG (only if DICOM upload is supported)
 - [ ] `docker-compose.yml` with database, backend, and web (M3)
 

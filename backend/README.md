@@ -19,7 +19,7 @@ backend/
 ├── security.py        password hashing, tokens, role and audit dependencies, login rate limit
 ├── analysis.py        AWGS cutoffs, the sarcopenia stage rule, calls into ml/predict.py and ml/tabular.py
 ├── xray_checks.py     an upload's real file type, and whether it looks like an X-ray
-├── storage.py         save and find uploaded files (optional private Cloudinary copy)
+├── storage.py         uploaded files: Cloudinary when hosted, backend/uploads/ on a laptop
 ├── routers/
 │   ├── auth.py        login, refresh, logout, me
 │   ├── patients.py    register, list and search, details
@@ -29,7 +29,7 @@ backend/
 ├── tests/test_api.py
 ├── requirements.txt   the only Python package list
 ├── package.json       build and start commands for Render (its root directory is backend/)
-└── uploads/           X-rays and overlays at runtime (created on first upload, ignored by git)
+└── uploads/           X-rays and overlays on a laptop only (created on first upload, ignored by git)
 ```
 
 ## Setup

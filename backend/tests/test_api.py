@@ -235,7 +235,7 @@ def test_screening_flow_from_visit_to_review(client, monkeypatch):
     ]
     assert client.head("/api/v1/ping").status_code == 200 and client.get("/api/v1/ping").json() == {"status": "ok"}
     assert client.get("/api/v1/health").json() == {
-        "status": "ok", "model_connected": False, "tabular_connected": False,
+        "status": "ok", "model_connected": False, "tabular_connected": False, "storage": "local",
     }
     assert client.post(f"/api/v1/patients/{patient_id}/visits", headers=admin).status_code == 403
     assert client.post("/api/v1/patients", json={**PATIENT, "mrn": "MRN-9"}, headers=admin).status_code == 403
@@ -298,3 +298,32 @@ def test_only_admin_manages_users(client):
 
 def test_retired_technician_cannot_sign_in(client):
     assert client.post(LOGIN, json={"email": "technician@test.local", "password": PASSWORD}).status_code == 401
+
+
+def test_cloudinary_storage_is_private_and_keeps_nothing_on_disk(monkeypatch):
+    """With STORAGE_BACKEND=cloudinary: uploads are "authenticated" (never public), reads use a signed URL,
+    and nothing is written to the uploads folder. Cloudinary itself is replaced by a fake here."""
+    from types import SimpleNamespace
+
+    from backend import storage
+    from backend.config import settings
+
+    uploads, urls = [], []
+    fake = SimpleNamespace(
+        uploader=SimpleNamespace(upload=lambda source, **kw: uploads.append((source.read(), kw))),
+        utils=SimpleNamespace(cloudinary_url=lambda public_id, **kw: urls.append((public_id, kw)) or ("https://x", {})),
+    )
+    monkeypatch.setattr(storage, "_cloud", True)
+    monkeypatch.setattr(storage, "cloudinary", fake, raising=False)
+    monkeypatch.setattr(storage.urllib.request, "urlopen", lambda url, timeout: io.BytesIO(b"image bytes"))
+    before = set(settings.upload_dir.glob("*")) if settings.upload_dir.exists() else set()
+
+    key = storage.save(io.BytesIO(b"image bytes"), ".png")
+    assert uploads == [(b"image bytes", {"public_id": f"sarcoscan/{key[:-4]}", "resource_type": "image",
+                                         "type": "authenticated"})]
+    with storage.working_copy(key) as copy:
+        assert copy.read_bytes() == b"image bytes"
+    assert not copy.exists()  # the temporary copy is gone
+    assert urls[0][1]["type"] == "authenticated" and urls[0][1]["sign_url"] is True
+    after = set(settings.upload_dir.glob("*")) if settings.upload_dir.exists() else set()
+    assert after == before

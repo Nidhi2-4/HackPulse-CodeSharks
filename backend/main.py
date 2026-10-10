@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .analysis import model_connected, tabular_connected
+from . import storage
 from .db import Base, engine, upgrade_schema
 from .routers import admin, auth, patients, visits
 
@@ -44,4 +45,7 @@ def ping():
 
 @app.get("/api/v1/health")
 def health():
-    return {"status": "ok", "model_connected": model_connected(), "tabular_connected": tabular_connected()}
+    return {
+        "status": "ok", "model_connected": model_connected(), "tabular_connected": tabular_connected(),
+        "storage": storage.backend(),
+    }

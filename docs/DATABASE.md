@@ -10,7 +10,7 @@ The spec defines 14 tables (pages 14 to 20). The hackathon build has 9 of them; 
 
 - Primary keys are UUIDs, except `audit_logs`, which uses a big serial.
 - Timestamps are stored in UTC.
-- Files are never stored in the database. A `*_storage_key` column holds a path under `backend/uploads/`.
+- Files are never stored in the database. A `*_storage_key` column holds a key from `backend/storage.py`: a file name in `backend/uploads/` on a laptop, or `sarcoscan/<name>` on Cloudinary when hosted.
 - BMI is computed on the server: `weight_kg / (height_cm / 100) ** 2`.
 
 ## Tables to build first
@@ -96,7 +96,7 @@ The last three columns are the spec's `clinical_inputs` table. It is one-to-one 
 | id | UUID, PK | |
 | visit_id | UUID, FK to visits | |
 | source | not built | every study is an upload until Orthanc is added |
-| storage_key | VARCHAR | path under `backend/uploads/` |
+| storage_key | VARCHAR | key from `backend/storage.py` |
 | laterality | ENUM(left, right, unknown) | |
 | qc_passed | BOOLEAN | |
 | qc_reason | VARCHAR | why the quality check failed |

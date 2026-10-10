@@ -23,7 +23,7 @@ It is a screening and referral tool. It does not replace DEXA and does not presc
                                  |
                      FastAPI backend  (backend/)
                     /            |             \
-           PostgreSQL     backend/uploads/     ml/predict.py, ml/tabular.py
+           PostgreSQL     Cloudinary           ml/predict.py, ml/tabular.py
            (records)      (X-rays, overlays)   + ml/models/ (same process)
 ```
 
@@ -39,7 +39,7 @@ Three rules hold the design together:
 |---|---|---|---|---|
 | Backend API | `backend/` | Python, FastAPI, SQLAlchemy, Pydantic | Anish | done for the demo flow |
 | Database | SQLite file locally, Supabase when hosted | PostgreSQL 17 | Anish | done |
-| File storage | `backend/uploads/` | local disk, with an optional Cloudinary copy | Anish | in progress |
+| File storage | `backend/storage.py` | Cloudinary when hosted (private, nothing on disk); `backend/uploads/` on a laptop | Anish | done |
 | Model training | `ml/training/`, `ml/data/` | PyTorch, XGBoost | Pravesh | in progress |
 | Model inference | `ml/predict.py`, `ml/tabular.py`, `ml/muscle.py`, `ml/models/` | Python | Pravesh | done: four models, called from `backend/analysis.py` |
 | Web UI | `frontend/web/` | Next.js 16, TypeScript, Tailwind, jsPDF | Nidhi | done: wired to the API. PWA manifest left. |
@@ -53,7 +53,7 @@ Three rules hold the design together:
 3. **Start a visit.**
 4. **Clinical inputs (optional).** SARC-F score, 5-chair-stand time, calf circumference.
 5. **Handgrip.** Three trials per hand, typed in by the doctor. The backend marks the best value and compares it with the AWGS 2019 cutoff: below 28 kg for men, below 18 kg for women.
-6. **X-ray upload.** The backend validates the file, saves it under `backend/uploads/`, records it in `xray_studies`, and runs the quality check.
+6. **X-ray upload.** The backend validates the file, saves it to storage (Cloudinary when hosted), records it in `xray_studies`, and runs the quality check.
 7. **Analyze.** The backend calls `ml/predict.py` (X-ray) and `ml/tabular.py` (body measurements), saves the overlay image, and stores a row in `analysis_results`.
 8. **Results screen.** Stage, risk tier, overlay, and measured values next to their cutoffs.
 9. **Doctor review.** Accept or override, with notes.
@@ -103,7 +103,8 @@ Why Tauri and not Electron for desktop: in Tauri the UI has no Node.js access an
 | 2026-10-04 | PostgreSQL as the database | decided |
 | 2026-10-04 | Handgrip is manual entry | decided (spec v2) |
 | 2026-10-04 | Backend framework is FastAPI, the spec's choice, because the ML code is Python too | decided |
-| 2026-10-04 | Files on local disk; a Cloudinary copy only for a hosted demo, free tier | decided by Anish. The copy must be private, see `SECURITY.md`. |
+| 2026-10-04 | Files on local disk; a Cloudinary copy only for a hosted demo, free tier | replaced on 2026-10-10 |
+| 2026-10-10 | Hosted: X-rays live only on Cloudinary (private, authenticated), nothing on the server's disk; the database stays on Supabase | decided by Anish |
 | 2026-10-04 | The web app keeps its own look; the design canvas linked in `FRONTEND.md` is a reference | decided |
 | 2026-10-04 | Development database on the Supabase free tier, reached through its pooler | decided by Anish |
 | 2026-10-04 | The PDF report is made in the browser from the stored result | decided |

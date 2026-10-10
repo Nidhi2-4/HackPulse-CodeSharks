@@ -6,7 +6,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from PIL import Image
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
@@ -120,12 +120,22 @@ def _history(visit: Visit) -> dict[str, bool] | None:
     return json.loads(visit.history_json) if visit.history_json else None
 
 
-def _stored_name(file_path: str | None) -> str | None:
-    """The model returns a path to a file it wrote in the uploads folder. Keep only a name that exists there."""
-    if not file_path:
+def _store_output(file_path: str | None) -> str | None:
+    """The model writes its overlay next to the working copy of the X-ray. Store it and return its key."""
+    if not file_path or not Path(file_path).is_file():
         return None
-    name = Path(file_path).name
-    return name if storage.path(name).is_file() else None
+    return storage.save_file(Path(file_path))
+
+
+def _image(key: str) -> Response:
+    """A stored image, sent through the API so the browser never gets a storage URL."""
+    try:
+        content = storage.read(key)
+    except Exception:
+        log.exception("Stored image %s could not be read", key)  # a key only, no patient details
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "The image could not be loaded") from None
+    media_type = "image/png" if key.endswith(".png") else "image/jpeg"
+    return Response(content, media_type=media_type, headers=NO_CACHE)
 
 
 @router.post("/patients/{patient_id}/visits", response_model=VisitOut, status_code=status.HTTP_201_CREATED)
@@ -273,15 +283,16 @@ def analyze(
     grip = _grip_summary(db, visit, patient)
     started = time.perf_counter()
     try:
-        output = run_model(storage.path(xray.storage_key), patient.age, patient.sex.value, visit.bmi)
+        with storage.working_copy(xray.storage_key) as image_path:
+            output = run_model(image_path, patient.age, patient.sex.value, visit.bmi)
+            overlay = _store_output(output.get("overlay_path"))
+            gradcam = _store_output(output.get("gradcam_path"))
         tabular = run_tabular_models(
             patient.age, patient.sex.value, patient.height_cm, patient.weight_kg, visit.bmi,
             visit.waist_cm, visit.arm_circ_cm, grip.best_left, grip.best_right,
             _history(visit),
         )
         tier = Tier(output["osteoporosis_tier"]) if output.get("osteoporosis_tier") else None
-        overlay = _stored_name(output.get("overlay_path"))
-        gradcam = _stored_name(output.get("gradcam_path"))
     except Exception:
         log.exception("Analysis failed for xray %s", xray.id)  # ids only, no patient details
         raise HTTPException(
@@ -407,7 +418,7 @@ def xray_image(
     own_visit(db, user, xray.visit_id)
     audit.log(user, "VIEW", "xray", xray.id)
     db.commit()
-    return FileResponse(storage.path(xray.storage_key), headers=NO_CACHE)
+    return _image(xray.storage_key)
 
 
 @router.get("/xrays/{xray_id}/overlay")
@@ -424,4 +435,4 @@ def xray_overlay(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No overlay for this X-ray")
     audit.log(user, "VIEW", "xray", xray.id)
     db.commit()
-    return FileResponse(storage.path(analysis.overlay_storage_key), headers=NO_CACHE)
+    return _image(analysis.overlay_storage_key)
