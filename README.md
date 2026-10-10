@@ -95,7 +95,7 @@ Open http://localhost:3000. `npm run setup` prints the two seed logins (`admin@`
 | `npm test` | Backend tests |
 | `npm run lint` / `npm run build` | Web app checks |
 | `npm run check` | All of the above, the same as CI |
-| `npm run seed` | Create the seed users again |
+| `npm run seed` | Create the seed users again; add `-- --demo` for the public demo doctor `demo@doctor.com` |
 
 Other ports: `API_PORT=8010 PORT=3010 npm run dev`. To run against the hosted database, set `ENV_FILE=.env.prod` first (see [backend/README.md](backend/README.md)).
 

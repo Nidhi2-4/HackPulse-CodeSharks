@@ -39,7 +39,7 @@ if (mode === "start" && (process.env.RENDER || process.env.ONLY === "api")) {
 }
 
 if (mode === "test") runOnce(python, ["-m", "pytest", "backend", ...process.argv.slice(3)]);
-else if (mode === "seed") runOnce(python, ["-m", "backend.seed"]);
+else if (mode === "seed") runOnce(python, ["-m", "backend.seed", ...process.argv.slice(3)]);
 else if (mode === "dev" || mode === "start") startBoth();
 else {
   console.error(`Unknown mode "${mode}". Use dev, start, test or seed.`);
