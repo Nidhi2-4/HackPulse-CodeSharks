@@ -50,6 +50,12 @@ def upgrade_schema() -> None:
             connection.execute(
                 text("ALTER TABLE patients ALTER COLUMN phone DROP NOT NULL, ALTER COLUMN phone_hash DROP NOT NULL")
             )
+            # Supabase serves every table in "public" over its REST API to anyone holding the project's
+            # anon key, which is public by design. Row-level security with no policies gives that key
+            # nothing. This API is unaffected: only a table's owner may run this ALTER, and the owner
+            # is not bound by row-level security.
+            for table in Base.metadata.tables:
+                connection.execute(text(f'ALTER TABLE "{table}" ENABLE ROW LEVEL SECURITY'))
         for table, columns in _ADDED_COLUMNS.items():
             present = {column["name"] for column in inspect(connection).get_columns(table)}
             for name, kind in columns.items():
